@@ -1,0 +1,17 @@
+{
+  "name": "rithmschool-start-ts-fe",
+  "version": "1.0.0",
+  "homepage": "https://github.com/rithmschool/start/",
+  "main": "main.ts",
+  "type": "module",
+  "scripts": {
+    "start": "vite --open",
+    "test": "vitest ts",
+    "test:cov": "vitest ts --coverage",
+    "test:debug": "vitest ts --run --inspect-brk --no-file-parallelism"
+  },
+  "devDependencies": {
+    "vite": "^5.0.12",
+    "vitest": "^1.2.2"
+  }
+}
