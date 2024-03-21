@@ -15,10 +15,10 @@ type tCardData = {
 
 
 class Card {
-  code: string;
-  value: string;
+  readonly code: string;
+  readonly value: string;
   flipped: boolean;
-  image: string;
+  readonly image: string;
 
   constructor(value: string, image: string, code: string) {
     this.code = code;
@@ -29,8 +29,8 @@ class Card {
 }
 
 class Game {
-  deckID: string;
-  players: Player[];
+  readonly deckID: string;
+  players: Player[];  //Object.freeze???
   currPlayer: Player;
   topDiscard: Card | null;
 
@@ -91,7 +91,7 @@ class Game {
 
 class Player {
   cards: Card[];
-  name: string;
+  readonly name: string;
   drawnCard: Card | null;
 
   constructor(name: string) {
