@@ -1,8 +1,9 @@
-import { randPlayer } from "./utilties.js";
+import { Game, Player, Card } from "./models.js";
 
-function start() {
-  const $root = $("#root");
-  $root.text(`2 + 3 = 5`);
-}
-
-start();
+(async () => {
+  const currentGame = await Game.startGame();
+  // Use currentGame to deal cards, manage turns, etc.
+  currentGame.dealGame();
+  currentGame.players[0].drawFromDeck(currentGame);
+  $("#root").html(currentGame.players[0].name);
+})();
