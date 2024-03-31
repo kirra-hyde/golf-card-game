@@ -73,8 +73,9 @@ class Game {
    */
 
   static async startGame(): Promise<Game> {
+    console.log("In models: startGame");
     const resp = await axios.get(`${BASE_URL}/new/shuffle`);
-    const deckID = resp.data.deckID as string;
+    const deckID = resp.data.deck_id as string;
 
     const mainName = "You";  // Will eventually get value from form. Which means, dictate that it is a string?  Validation check for not billy, etc.
     const names = [mainName, "Billy", "Bobby", "Buddy"];
@@ -92,6 +93,7 @@ class Game {
    */
 
   async dealGame(): Promise<void> {
+    console.log("In models: dealGame");
     // Using card api w/ deckID ensures a card is removed from deck when drawn
     for (let player of this.players) {
       const resp = await axios.get(
@@ -127,6 +129,7 @@ class Game {
         `${BASE_URL}/${this.deckID}/pile/discard/add`,
         { params: { cards: this.topDiscard.code } }
       );
+      this.topDiscard = null;
     }
 
     // Return regular discard pile to main deck
@@ -262,4 +265,4 @@ class Player {
   }
 }
 
-export { Game, Player, Card };
+export { Game, Player, Card, BASE_URL };
