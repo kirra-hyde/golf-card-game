@@ -1,17 +1,26 @@
-import { describe, test, it, expect } from "vitest";
+import { describe, test, it, expect, beforeEach } from "vitest";
 import { Game, Player, Card, BASE_URL } from "./models";
 import axios from "axios";
 import MockAdaptor from "axios-mock-adapter";
 
 const mock = new MockAdaptor(axios);
 
-const testPlayerNames = ["p1", "p2", "p3", "p4"];
-const testPlayers = testPlayerNames.map(name => new Player(name));
-const testPlayer = new Player("test player");
-const testGame = new Game("123", testPlayers);
-const testCard = new Card("8", "http://www.pic.com", "8C");
-const testCard2 = new Card("9", "http://www.pic.com", "9C");
-const testCard3 = new Card("10", "http://www.pic.com", "0C");
+let testPlayer: Player;
+let testGame: Game;
+let testCard: Card;
+let testCard2: Card;
+let testCard3: Card;
+
+beforeEach(function () {
+  const testPlayerNames = ["p1", "p2", "p3", "p4"];
+  const testPlayers = testPlayerNames.map(name => new Player(name));
+  testPlayer = new Player("test player");
+  testGame = new Game("123", testPlayers);
+  testCard = new Card("8", "http://www.pic.com", "8C");
+  testCard2 = new Card("9", "http://www.pic.com", "9C");
+  testCard3 = new Card("10", "http://www.pic.com", "0C");
+})
+
 
 describe("Card", function () {
   test("Card created correctly", function () {
@@ -144,7 +153,8 @@ describe("Player", function () {
 
   test("drawFromDeck", async function () {
     const game = testGame;
-    const player = testPlayer;
+    const player = game.players[0];
+    console.log("in drawFromDeck", player.drawnCard);
 
     mock.onGet(`${BASE_URL}/${game.deckID}/draw`).reply(200, {
       success: true,
@@ -164,7 +174,7 @@ describe("Player", function () {
 
   test("drawFromDiscards", function () {
     const game = testGame;
-    const player = testGame.players[0];
+    const player = game.players[0];
     const card = testCard;
 
     game.topDiscard = card;
@@ -179,7 +189,7 @@ describe("Player", function () {
 
   test("discardDrawnCard", async function () {
     const game = testGame;
-    const player = testGame.players[0];
+    const player = game.players[0];
     const card = testCard;
 
     player.drawnCard = card;
