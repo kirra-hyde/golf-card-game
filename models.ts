@@ -66,7 +66,7 @@ class Game {
   /** Static method to begin a new game.
    *
    * - Fetches a deck id from card API
-   * - Has 4 Players made, w/ a client chosen name for client controlled Player.
+   * - Has 4 Players made, w/ a client chosen name for client controlled Player
    * - Has a Game instance made from deck id and Players
    *
    * Returns: (promise of) Game instance
@@ -179,7 +179,7 @@ class Player {
    *
    * - Fetch data on 1 card
    * - Have Card instance made from data
-   * - Make Card Player's drawnCard.
+   * - Make Card Player's drawnCard
    * - If no cards remain in deck, has discard pile shuffled into deck first
    *
    * Takes: game, a Game instance
@@ -190,7 +190,7 @@ class Player {
     const resp = await axios.get(`${BASE_URL}/${game.deckID}/draw`);
 
     // success will be false if there are no cards left in deck to draw
-    // if no cards remain, have discard pile shuffled into deck, and try again.
+    // if no cards remain, have discard pile shuffled into deck, and try again
     const success = resp.data.success as boolean;
     if (!success) {
       await game.reshuffle();
@@ -205,7 +205,7 @@ class Player {
   /** Draw the top card from the discard pile
    *
    * - Make Card at top of discard pile Player's drawnCard
-   * - Set Game's topDiscard to null, showing card has been taken.
+   * - Set Game's topDiscard to null, showing card has been taken
    *
    * Takes: game, a Game instance
    */
@@ -220,7 +220,7 @@ class Player {
    * - If the Game's topDiscard is a Card, use its code to add the card
    *      to the deck's main discard pile, using card api
    * - Make Game's topDiscard the Player's drawnCard
-   * - Set Player's drawnCard to null, showing they've discarded it.
+   * - Set Player's drawnCard to null, showing they've discarded it
    *
    * Takes: game, a Game instance
    */
@@ -244,7 +244,7 @@ class Player {
    *      to the deck's main discard pile, using card api
    * - Make Card at the index of Player's cards array the Game's topDiscard
    * - Make drawnCard the Card at the given index in Player's cards array
-   * - Set Player's drawnCard to null, showing they've discarded it.
+   * - Set Player's drawnCard to null, showing they've discarded it
    *
    * Takes:
    * - game: a Game instance

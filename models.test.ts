@@ -11,6 +11,7 @@ const testPlayer = new Player("test player");
 const testGame = new Game("123", testPlayers);
 const testCard = new Card("8", "http://www.pic.com", "8C");
 const testCard2 = new Card("9", "http://www.pic.com", "9C");
+const testCard3 = new Card("10", "http://www.pic.com", "0C");
 
 describe("Card", function () {
   test("Card created correctly", function () {
@@ -36,10 +37,10 @@ describe("Game", function () {
       expect(player).toBeInstanceOf(Player);
     }
     expect(game.players).toEqual([
-      {cards: [], name: "You", drawnCard: null},
-      {cards: [], name: "Billy", drawnCard: null},
-      {cards: [], name: "Bobby", drawnCard: null},
-      {cards: [], name: "Buddy", drawnCard: null},
+      { cards: [], name: "You", drawnCard: null },
+      { cards: [], name: "Billy", drawnCard: null },
+      { cards: [], name: "Bobby", drawnCard: null },
+      { cards: [], name: "Buddy", drawnCard: null },
     ]);
     expect(game.currPlayer).toBeInstanceOf(Player);
     expect(game.topDiscard).toBeNull();
@@ -159,5 +160,56 @@ describe("Player", function () {
       flipped: false,
       image: "www.pic.com"
     });
+  });
+
+  test("drawFromDiscards", function () {
+    const game = testGame;
+    const player = testGame.players[0];
+    const card = testCard;
+
+    game.topDiscard = card;
+
+    expect(player.drawnCard).toBeNull();
+
+    player.drawFromDiscards(game);
+
+    expect(player.drawnCard).toBe(card);
+    expect(game.topDiscard).toBeNull();
+  });
+
+  test("discardDrawnCard", async function () {
+    const game = testGame;
+    const player = testGame.players[0];
+    const card = testCard;
+
+    player.drawnCard = card;
+
+    expect(game.topDiscard).toBeNull();
+
+    await player.discardDrawnCard(game);
+
+    expect(game.topDiscard).toBe(card);
+    expect(player.drawnCard).toBeNull();
+  });
+
+  test("takeDrawnCard", async function () {
+    const game = testGame;
+    const player = testGame.players[0];
+    const card1 = testCard;
+    const card2 = testCard2;
+    const card3 = testCard3;
+
+    player.cards = [card1, card2];
+    player.drawnCard = card3;
+
+    expect(game.topDiscard).toBeNull();
+    expect(card3.flipped).toEqual(false);
+
+    await player.takeDrawnCard(1, game);
+
+    expect(player.cards).toEqual([card1, card3]);
+    expect(game.topDiscard).toBe(card2);
+    expect(card3.flipped).toEqual(true);
+    expect(player.drawnCard).toBeNull();
   });
 });
