@@ -1,4 +1,4 @@
-import { describe, test, it, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeEach } from "vitest";
 import { Game, Player, Card, BASE_URL } from "./models";
 import axios from "axios";
 import MockAdaptor from "axios-mock-adapter";
@@ -10,6 +10,7 @@ let testGame: Game;
 let testCard: Card;
 let testCard2: Card;
 let testCard3: Card;
+let testCard4: Card;
 
 beforeEach(function () {
   const testPlayerNames = ["p1", "p2", "p3", "p4"];
@@ -19,10 +20,11 @@ beforeEach(function () {
   testCard = new Card("8", "http://www.pic.com", "8C");
   testCard2 = new Card("9", "http://www.pic.com", "9C");
   testCard3 = new Card("10", "http://www.pic.com", "0C");
-})
+  testCard4 = new Card("JACK", "http://www.pic.com", "JC");
+});
 
 
-describe("Card", function () {
+describe("Card class", function () {
   test("Card created correctly", function () {
     const card = new Card("ACE", "http://www.pic.com", "AD");
     expect(card.code).toEqual("AD");
@@ -32,7 +34,8 @@ describe("Card", function () {
   });
 });
 
-describe("Game", function () {
+
+describe("Game class", function () {
 
   test("startGame", async function () {
     // Mock the axios.get method to return a mock response with a deck ID
@@ -53,6 +56,8 @@ describe("Game", function () {
     ]);
     expect(game.currPlayer).toBeInstanceOf(Player);
     expect(game.topDiscard).toBeNull();
+    expect(game.deckIsEmpty).toEqual(false);
+    expect(game.discardPileHasCards).toEqual(false);
   });
 
   test("dealGame", async function () {
@@ -92,7 +97,9 @@ describe("Game", function () {
       ]);
     }
 
-    expect(game.topDiscard?.code).toEqual("7S");
+    expect(game.topDiscard).toEqual(
+      { code: "7S", image: "www.pic7.com", value: "7", flipped: false }
+    );
   });
 
   test("switchTurn", function () {
@@ -100,29 +107,33 @@ describe("Game", function () {
     game.currPlayer = game.players[2];
 
     game.switchTurn();
-    expect(game.currPlayer).toEqual(game.players[3]);
+    expect(game.currPlayer).toBe(game.players[3]);
 
     game.switchTurn();
-    expect(game.currPlayer).toEqual(game.players[0]);
+    expect(game.currPlayer).toBe(game.players[0]);
   });
 
   test("reshuffle", async function () {
     const game = testGame;
-    const card = testCard;
-    game.topDiscard = card;
+    const card1 = testCard;
+    game.topDiscard = card1;
+    game.deckIsEmpty = true;
+    game.discardPileHasCards = true;
 
     mock.onGet(`${BASE_URL}/${game.deckID}/pile/discard/add`).reply(200);
     mock.onGet(`${BASE_URL}/${game.deckID}/pile/discard/return`).reply(200);
     mock.onGet(`${BASE_URL}/${game.deckID}/shuffle`).reply(200);
 
-    expect(game.topDiscard).toBeInstanceOf(Card);
-
     await game.reshuffle();
+
     expect(game.topDiscard).toBeNull();
+    expect(game.deckIsEmpty).toEqual(false);
+    expect(game.discardPileHasCards).toEqual(false);
   });
 });
 
-describe("Player", function () {
+
+describe("Player class", function () {
   test("Player created successfully", function () {
     const player = new Player("test player");
 
@@ -151,15 +162,17 @@ describe("Player", function () {
     expect(player.cards[1].flipped).toEqual(true);
   });
 
-  test("drawFromDeck", async function () {
+  test("drawFromDeck with multiple cards", async function () {
     const game = testGame;
     const player = game.players[0];
-    console.log("in drawFromDeck", player.drawnCard);
 
     mock.onGet(`${BASE_URL}/${game.deckID}/draw`).reply(200, {
       success: true,
-      cards: [{ value: "KING", image: "www.pic.com", code: "KH" }]
+      cards: [{ value: "KING", image: "www.pic.com", code: "KH" }],
+      remaining: 5
     });
+
+    expect(game.deckIsEmpty).toEqual(false);
 
     await player.drawFromDeck(game);
 
@@ -170,6 +183,24 @@ describe("Player", function () {
       flipped: false,
       image: "www.pic.com"
     });
+    expect(game.deckIsEmpty).toEqual(false);
+  });
+
+  test("drawFromDeck with one card", async function () {
+    const game = testGame;
+    const player = game.players[0];
+
+    mock.onGet(`${BASE_URL}/${game.deckID}/draw`).reply(200, {
+      success: true,
+      cards: [{ value: "KING", image: "www.pic.com", code: "KH" }],
+      remaining: 0
+    });
+
+    expect(game.deckIsEmpty).toEqual(false);
+
+    await player.drawFromDeck(game);
+
+    expect(game.deckIsEmpty).toEqual(true);
   });
 
   test("drawFromDiscards", function () {
@@ -190,16 +221,27 @@ describe("Player", function () {
   test("discardDrawnCard", async function () {
     const game = testGame;
     const player = game.players[0];
-    const card = testCard;
+    const card1 = testCard;
+    const card2 = testCard2
 
-    player.drawnCard = card;
+    player.drawnCard = card1;
 
     expect(game.topDiscard).toBeNull();
+    expect(game.discardPileHasCards).toEqual(false);
 
     await player.discardDrawnCard(game);
 
-    expect(game.topDiscard).toBe(card);
+    expect(game.topDiscard).toBe(card1);
     expect(player.drawnCard).toBeNull();
+    expect(game.discardPileHasCards).toEqual(false);
+
+    player.drawnCard = card2;
+
+    await player.discardDrawnCard(game);
+
+    expect(game.topDiscard).toBe(card2);
+    expect(player.drawnCard).toBeNull();
+    expect(game.discardPileHasCards).toEqual(true);
   });
 
   test("takeDrawnCard", async function () {
@@ -208,18 +250,34 @@ describe("Player", function () {
     const card1 = testCard;
     const card2 = testCard2;
     const card3 = testCard3;
+    const card4 = testCard4;
 
     player.cards = [card1, card2];
     player.drawnCard = card3;
 
     expect(game.topDiscard).toBeNull();
     expect(card3.flipped).toEqual(false);
+    expect(card4.flipped).toEqual(false);
+    expect(game.discardPileHasCards).toEqual(false);
 
     await player.takeDrawnCard(1, game);
 
     expect(player.cards).toEqual([card1, card3]);
     expect(game.topDiscard).toBe(card2);
     expect(card3.flipped).toEqual(true);
+    expect(card4.flipped).toEqual(false);
     expect(player.drawnCard).toBeNull();
+    expect(game.discardPileHasCards).toEqual(false);
+
+    player.drawnCard = card4;
+
+    await player.takeDrawnCard(0, game);
+
+    expect(player.cards).toEqual([card4, card3]);
+    expect(game.topDiscard).toBe(card1);
+    expect(card3.flipped).toEqual(true);
+    expect(card4.flipped).toEqual(true);
+    expect(player.drawnCard).toBeNull();
+    expect(game.discardPileHasCards).toEqual(true);
   });
 });

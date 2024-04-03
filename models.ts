@@ -42,10 +42,13 @@ class Card {
 /******************************************************************************
  * Game: Houses game logic
  *
- * - deckID: string that uniquely identifies the deck used in the game
+ * - deckID: string that uniquely identifies the card-api deck used in the game
  * - players: array of Player instances. Ex. [{ cards, name, drawnCard }]
  * - currPlayer: Player whose turn it is to play. Ex. { cards, name, drawnCard }
  * - topDiscard: Card at top of discard pile. Ex. {value, image, code, flipped }
+ * - deckIsEmpty: boolean, false if any cards remain in card-api deck, else true
+ * - discardPileHasCards: boolean, true if the card-api discard pile (which
+ *      includes all discarded cards EXCEPT topDiscard) has cards, else false
  */
 
 class Game {
@@ -53,6 +56,8 @@ class Game {
   readonly players: Player[];
   currPlayer: Player;
   topDiscard: Card | null;
+  deckIsEmpty: boolean;
+  discardPileHasCards: boolean;
 
   /** Make instance of a Game from a deckID and an array of Players */
 
@@ -61,12 +66,14 @@ class Game {
     this.players = players;
     this.currPlayer = randPlayer(players);
     this.topDiscard = null;
+    this.deckIsEmpty = false;
+    this.discardPileHasCards = false;
   }
 
   /** Static method to begin a new game.
    *
    * - Fetches a deck id from card API
-   * - Has 4 Players made, w/ a client chosen name for client controlled Player
+   * - Has 4 Players made, optionally using 'playerName' for non-computer Player
    * - Has a Game instance made from deck id and Players
    *
    * Takes (optionally): playerName, string representing the main player's name
@@ -75,6 +82,7 @@ class Game {
 
   static async startGame(playerName: string = "You"): Promise<Game> {
     console.log("In models: startGame");
+
     const resp = await axios.get(`${BASE_URL}/new/shuffle`);
     const deckID = resp.data.deck_id as string;
 
@@ -94,6 +102,7 @@ class Game {
 
   async dealGame(): Promise<void> {
     console.log("In models: dealGame");
+
     // Using card api w/ deckID ensures a card is removed from deck when drawn
     for (let player of this.players) {
       const resp = await axios.get(
@@ -117,13 +126,20 @@ class Game {
   /** Switches which Player's turn it is */
 
   switchTurn(): void {
+    console.log("In models: switchTurn");
     this.currPlayer = changePlayer(this.currPlayer, this.players);
   }
 
-  /** Returns cards from discard pile to deck and shuffles deck */
+  /** Handle deck reshuffling when the deck is out of cards
+   *
+   * - Return cards from card-api discard pile to main deck and shuffle deck
+   * - Set the Game's discardPileHasCards and deckIsEmpty to false
+   */
 
   async reshuffle(): Promise<void> {
-    // If there is a topDiscard Card, add it to regular discard pile
+    console.log("In models: reshuffle");
+
+    // If there is a topDiscard Card, add it to card-api discard pile
     if (this.topDiscard instanceof Card) {
       await axios.get(
         `${BASE_URL}/${this.deckID}/pile/discard/add`,
@@ -132,14 +148,17 @@ class Game {
       this.topDiscard = null;
     }
 
-    // Return regular discard pile to main deck
+    // Return card-api discard pile to main card-api deck
     await axios.get(`${BASE_URL}/${this.deckID}/pile/discard/return`);
 
-    // Shuffle main deck
+    // Shuffle card-api deck
     await axios.get(
       `${BASE_URL}/${this.deckID}/shuffle`,
       { params: { remaining: true } }
     );
+
+    this.discardPileHasCards = false;
+    this.deckIsEmpty = false;
   }
 }
 
@@ -172,6 +191,7 @@ class Player {
    */
 
   flipCard(cardInd: number): void {
+    console.log("In models: flipCard");
     this.cards[cardInd].flipped = true;
   }
 
@@ -180,26 +200,33 @@ class Player {
    * - Fetch data on 1 card
    * - Have Card instance made from data
    * - Make Card Player's drawnCard
+   * - Sets Game's deckIsEmpty using data from API call
    * - If no cards remain in deck, has discard pile shuffled into deck first
    *
    * Takes: game, a Game instance
    */
 
   async drawFromDeck(game: Game): Promise<void> {
+    console.log("In models: drawFromDeck");
 
     const resp = await axios.get(`${BASE_URL}/${game.deckID}/draw`);
 
-    // success will be false if there are no cards left in deck to draw
-    // if no cards remain, have discard pile shuffled into deck, and try again
+    // Success will be false if there are no cards left in deck to draw
     const success = resp.data.success as boolean;
+
+    // If no cards remain, have discard pile shuffled into deck, and try again
     if (!success) {
       await game.reshuffle();
       this.drawFromDeck(game);
-    }
+    } else {
+      const cardData = resp.data.cards[0] as tCardData;
+      const { value, image, code } = cardData;
+      this.drawnCard = new Card(value, image, code);
 
-    const cardData = resp.data.cards[0] as tCardData;
-    const { value, image, code } = cardData;
-    this.drawnCard = new Card(value, image, code);
+      // If the last card from deck was just drawn, make deckIsEmpty true
+      const remainingCards = resp.data.remaining as number;
+      game.deckIsEmpty = remainingCards === 0;
+    }
   }
 
   /** Draw the top card from the discard pile
@@ -211,6 +238,8 @@ class Player {
    */
 
   drawFromDiscards(game: Game): void {
+    console.log("In models: drawFromDiscards");
+
     this.drawnCard = game.topDiscard as Card;
     game.topDiscard = null;
   }
@@ -218,7 +247,8 @@ class Player {
   /** Discard drawn card to top of discard pile
    *
    * - If the Game's topDiscard is a Card, use its code to add the card
-   *      to the deck's main discard pile, using card api
+   *      to the deck's card-api discard pile, and set Game's
+   *      discardPileHasCards to true
    * - Make Game's topDiscard the Player's drawnCard
    * - Set Player's drawnCard to null, showing they've discarded it
    *
@@ -226,7 +256,13 @@ class Player {
    */
 
   async discardDrawnCard(game: Game): Promise<void> {
+    console.log("In models: discardDrawnCard");
+
     if (game.topDiscard instanceof Card) {
+
+      // Current Game topDiscard is about to be added to card-api discard pile
+      game.discardPileHasCards = true;
+
       await axios.get(
         `${BASE_URL}/${game.deckID}/pile/discard/add`,
         { params: { cards: game.topDiscard.code } }
@@ -241,7 +277,8 @@ class Player {
    *  Discard Card that was previously in player's cards array
    *
    * - If the Game's topDiscard is a Card, use its code to add the card
-   *      to the deck's main discard pile, using card api
+   *      to the deck's card-api discard pile, and set Game's
+   *      discardPileHasCards to true
    * - Make Card at the index of Player's cards array the Game's topDiscard
    * - Make drawnCard the Card at the given index in Player's cards array
    * - Set Player's drawnCard to null, showing they've discarded it
@@ -252,12 +289,19 @@ class Player {
    */
 
   async takeDrawnCard(cardInd: number, game: Game): Promise<void> {
+    console.log("In models: takeDrawnCard");
+    
     if (game.topDiscard instanceof Card) {
+
+      // Current Game topDiscard is about to be added to card-api discard pile
+      game.discardPileHasCards = true;
+
       await axios.get(
         `${BASE_URL}/${game.deckID}/pile/discard/add`,
         { params: { cards: game.topDiscard.code } }
       );
     }
+
     game.topDiscard = this.cards[cardInd];
     this.cards[cardInd] = this.drawnCard as Card;
     this.cards[cardInd].flipped = true;
