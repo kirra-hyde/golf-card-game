@@ -38,6 +38,7 @@ body {
   position: relative;
   width: 100%;
   margin: 50px 0;
+  text-align: center;
 }
 
 #end-screen {
@@ -62,15 +63,12 @@ body {
 
 #start-screen h1 {
   position: relative;
-  width: 305px;
-  margin: 0 auto;
   font-size: 70px;
 }
 
 #start-screen form {
   position: relative;
-  width: 305px;
-  margin: 30px auto;
+  margin: 30px;
   font-size: 30px;
 }
 

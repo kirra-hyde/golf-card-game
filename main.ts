@@ -3,7 +3,7 @@ import { Game, Player, Card } from "./models.js";
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
 
-$startScreen.hide();
+$cardsArea.hide();
 
 async function start() {
   console.log("In main: start");
