@@ -69,16 +69,16 @@ class Game {
    * - Has 4 Players made, w/ a client chosen name for client controlled Player
    * - Has a Game instance made from deck id and Players
    *
+   * Takes (optionally): playerName, string representing the main player's name
    * Returns: (promise of) Game instance
    */
 
-  static async startGame(): Promise<Game> {
+  static async startGame(playerName: string = "You"): Promise<Game> {
     console.log("In models: startGame");
     const resp = await axios.get(`${BASE_URL}/new/shuffle`);
     const deckID = resp.data.deck_id as string;
 
-    const mainName = "You";  // Will eventually get value from form. Which means, dictate that it is a string?  Validation check for not billy, etc. Char limit: 10.
-    const names = [mainName, "Billy", "Bobby", "Buddy"];
+    const names = [playerName, "Billy", "Bobby", "Buddy"];
     const players = names.map(name => new Player(name));
 
     return new Game(deckID, players);

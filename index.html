@@ -11,14 +11,16 @@
 </head>
 
 <body>
-  <!-- <div id="start-screen">
+  <div id="start-screen">
+    <h1 class="text-white">Play Golf!</h1>
     <form>
-      <label id="name-field">Name:</label>
-      <input for="name-field">
+      <label class="text-white" for="name-field">Choose your name:</label>
+      <input id="name-field" maxlength="10">
       <br>
-      <button type="button" id="start-button">Start game</button>
+      <br>
+      <button type="button" id="start-button">Start game!</button>
     </form>
-  </div> -->
+  </div>
 
   <div class="container border border-dark rounded" id="cards-area">
     <h3 class="name" id="p3-name">Bobby</h3>
@@ -26,14 +28,14 @@
       <div class="col-4"></div>
       <div class="container player col-4" id="p3">
         <div class="row">
-          <img class="col-4" id="p3-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p3-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p3-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p3-0" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p3-1" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p3-2" src="./images/back.png" alt="back of card">
         </div>
         <div class="row">
-          <img class="col-4" id="p3-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p3-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p3-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p3-3" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p3-4" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p3-5" src="./images/back.png" alt="back of card">
         </div>
       </div>
       <div class="col-4"></div>
@@ -42,33 +44,40 @@
     <div class="row" id="middle">
       <div class="container player col-4" id="p2">
         <div class="row">
-          <img class="col-4" id="p2-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p2-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p2-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p2-0" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p2-1" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p2-2" src="./images/back.png" alt="back of card">
         </div>
         <div class="row">
-          <img class="col-4" id="p2-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p2-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p2-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p2-3" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p2-4" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p2-5" src="./images/back.png" alt="back of card">
         </div>
         <h3 class="name" id="p2-name">Billy</h3>
       </div>
       <div class="col-4" id="deck-area">
-        <img class="pic" id="discards" src="./images/discards_placeholder.png">
-        <img class="pic" id="deck" src="./images/deck.png">
+        <img class="pic" id="discards" src="./images/discards_placeholder.png" alt="discards go here">
+        <img class="pic" id="deck" src="./images/deck.png" alt="main deck of cards">
       </div>
       <div class="container player col-4" id="p4">
         <div class="row">
-          <img class="col-4" id="p4-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p4-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p4-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p4-0" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p4-1" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p4-2" src="./images/back.png" alt="back of card">
         </div>
         <div class="row">
-          <img class="col-4" id="p4-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p4-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p4-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p4-3" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p4-4" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p4-5" src="./images/back.png" alt="back of card">
         </div>
         <h3 class="name" id="p4-name">Buddy</h3>
+      </div>
+      <div class="container" id="end-screen">
+        <h1 id="end-message">Congratulations, you win!</h1>
+        <h2>Final Scores:</h2>
+        <h3>You: 53, Billy: 46, Bobby: 53, Buddy: 102</h3>
+        <h5>Do you want to play again?</h5>
+        <button type="button" id="restart">New game</button>
       </div>
     </div>
 
@@ -76,18 +85,18 @@
       <div class="col-4"></div>
       <div class="container player col-4" id="p1">
         <div class="row">
-          <img class="col-4" id="p1-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p1-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p1-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p1-0" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p1-1" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p1-2" src="./images/back.png" alt="back of card">
         </div>
         <div class="row">
-          <img class="col-4" id="p1-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p1-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
-          <img class="col-4" id="p1-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p1-3" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p1-4" src="./images/back.png" alt="back of card">
+          <img class="col-4" id="p1-5" src="./images/back.png" alt="back of card">
         </div>
       </div>
       <div class="col-4" id="drawn-card-area">
-        <img class="pic" id="drawn-card" src="./images/drawn_placeholder.png">
+        <img class="pic" id="drawn-card" src="./images/drawn_placeholder.png" alt="your drawn cards go here">
       </div>
     </div>
     <h3 class="name" id="p1-name">You</h3>
