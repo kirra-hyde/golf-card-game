@@ -1,0 +1,46 @@
+body {
+  background-color: green;
+}
+
+#cards-area {
+  position: relative;
+  background-color: limegreen;
+  max-width: 1000px;
+  margin: 10px auto;
+}
+
+#p2 {
+  transform: rotate(90deg);
+}
+
+#p3 {
+  transform: rotate(180deg);
+}
+
+#p4 {
+  transform: rotate(270deg);
+}
+
+#deck-area {
+  position: relative;
+  margin: auto;
+  left: 3%;
+}
+
+#drawn-card-area {
+  position: relative;
+  margin: auto;
+  left: 3%;
+  top: 20px;
+}
+
+.name {
+  position: relative;
+  width: 75px;
+  margin: 10px auto;
+}
+
+.pic {
+  width: 40%;
+  margin: 5px;
+}

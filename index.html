@@ -1,16 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="data:,">
-  <title>Starter</title>
+  <title>Golf</title>
+  <link rel="stylesheet" href="https://unpkg.com/bootstrap@5/dist/css/bootstrap.css">
+  <link href="style.css" rel="stylesheet">
 </head>
+
 <body>
-  <h1>Starter</h1>
-  <div id="root"></div>
+  <!-- <div id="start-screen">
+    <form>
+      <label id="name-field">Name:</label>
+      <input for="name-field">
+      <br>
+      <button type="button" id="start-button">Start game</button>
+    </form>
+  </div> -->
+
+  <div class="container border border-dark rounded" id="cards-area">
+    <h3 class="name" id="p3-name">Bobby</h3>
+    <div class="row" id="top">
+      <div class="col-4"></div>
+      <div class="container player col-4" id="p3">
+        <div class="row">
+          <img class="col-4" id="p3-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p3-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p3-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+        <div class="row">
+          <img class="col-4" id="p3-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p3-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p3-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+      </div>
+      <div class="col-4"></div>
+    </div>
+
+    <div class="row" id="middle">
+      <div class="container player col-4" id="p2">
+        <div class="row">
+          <img class="col-4" id="p2-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p2-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p2-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+        <div class="row">
+          <img class="col-4" id="p2-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p2-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p2-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+        <h3 class="name" id="p2-name">Billy</h3>
+      </div>
+      <div class="col-4" id="deck-area">
+        <img class="pic" id="discards" src="./images/discards_placeholder.png">
+        <img class="pic" id="deck" src="./images/deck.png">
+      </div>
+      <div class="container player col-4" id="p4">
+        <div class="row">
+          <img class="col-4" id="p4-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p4-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p4-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+        <div class="row">
+          <img class="col-4" id="p4-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p4-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p4-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+        <h3 class="name" id="p4-name">Buddy</h3>
+      </div>
+    </div>
+
+    <div class="row" id="bottom">
+      <div class="col-4"></div>
+      <div class="container player col-4" id="p1">
+        <div class="row">
+          <img class="col-4" id="p1-0" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p1-1" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p1-2" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+        <div class="row">
+          <img class="col-4" id="p1-3" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p1-4" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+          <img class="col-4" id="p1-5" src="https://deckofcardsapi.com/static/img/back.png" alt="back of card">
+        </div>
+      </div>
+      <div class="col-4" id="drawn-card-area">
+        <img class="pic" id="drawn-card" src="./images/drawn_placeholder.png">
+      </div>
+    </div>
+    <h3 class="name" id="p1-name">You</h3>
+  </div>
 
   <script src="https://unpkg.com/jquery"></script>
   <script type="module" src="main.ts"></script>
 </body>
+
 </html>

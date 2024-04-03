@@ -6,5 +6,4 @@ async function start() {
   await currentGame.dealGame();
 
   currentGame.players[0].drawFromDeck(currentGame);
-  $("#root").html(currentGame.players[0].name);
 };

@@ -77,7 +77,7 @@ class Game {
     const resp = await axios.get(`${BASE_URL}/new/shuffle`);
     const deckID = resp.data.deck_id as string;
 
-    const mainName = "You";  // Will eventually get value from form. Which means, dictate that it is a string?  Validation check for not billy, etc.
+    const mainName = "You";  // Will eventually get value from form. Which means, dictate that it is a string?  Validation check for not billy, etc. Char limit: 10.
     const names = [mainName, "Billy", "Bobby", "Buddy"];
     const players = names.map(name => new Player(name));
 
