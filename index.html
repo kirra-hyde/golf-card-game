@@ -13,16 +13,16 @@
 <body>
   <div id="start-screen">
     <h1 class="text-white">Play Golf!</h1>
-    <form>
+    <form id="start-form">
       <label class="text-white" for="name-field">Choose your name:</label>
       <input id="name-field" maxlength="10">
       <br>
       <br>
-      <button type="button" id="start-button">Start game!</button>
+      <button type="submit" id="start-button">Start game!</button>
     </form>
   </div>
 
-  <div class="container border border-dark rounded" id="cards-area">
+  <div class="container border border-dark rounded hidden" id="cards-area">
     <h3 class="name" id="p3-name">Bobby</h3>
     <div class="row" id="top">
       <div class="col-4"></div>
@@ -72,13 +72,6 @@
         </div>
         <h3 class="name" id="p4-name">Buddy</h3>
       </div>
-      <div class="container" id="end-screen">
-        <h1 id="end-message">Congratulations, you win!</h1>
-        <h2>Final Scores:</h2>
-        <h3>You: 53, Billy: 46, Bobby: 53, Buddy: 102</h3>
-        <h5>Do you want to play again?</h5>
-        <button type="button" id="restart">New game</button>
-      </div>
     </div>
 
     <div class="row" id="bottom">
@@ -100,6 +93,14 @@
       </div>
     </div>
     <h3 class="name" id="p1-name">You</h3>
+
+    <div class="container hidden" id="end-screen">
+      <h1 id="end-message">Congratulations, you win!</h1>
+      <h2>Final Scores:</h2>
+      <h3>You: 53, Billy: 46, Bobby: 53, Buddy: 102</h3>
+      <h5>Do you want to play again?</h5>
+      <button type="button" id="restart">New game</button>
+    </div>
   </div>
 
   <script src="https://unpkg.com/jquery"></script>

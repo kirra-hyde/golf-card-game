@@ -36,6 +36,12 @@ class Card {
     this.image = image;
     this.flipped = false;
   }
+
+  /** Make a Card flipped*/
+
+  flip(): void {
+    this.flipped = true;
+  }
 }
 
 
@@ -123,7 +129,7 @@ class Game {
     this.topDiscard = new Card(value, image, code);
   }
 
-  /** Switches which Player's turn it is */
+  /** Switch which Player's turn it is */
 
   switchTurn(): void {
     console.log("In models: switchTurn");
@@ -185,7 +191,7 @@ class Player {
     this.drawnCard = null;
   }
 
-  /** Makes a Card from Player's card array flipped
+  /** Make a Card from Player's card array flipped
    *
    * Takes: cardInd, number representing index of Card to be flipped
    */
@@ -200,8 +206,8 @@ class Player {
    * - Fetch data on 1 card
    * - Have Card instance made from data
    * - Make Card Player's drawnCard
-   * - Sets Game's deckIsEmpty using data from API call
-   * - If no cards remain in deck, has discard pile shuffled into deck first
+   * - Set Game's deckIsEmpty using data from API call
+   * - If no cards remain in deck, have discard pile shuffled into deck first
    *
    * Takes: game, a Game instance
    */
@@ -290,7 +296,7 @@ class Player {
 
   async takeDrawnCard(cardInd: number, game: Game): Promise<void> {
     console.log("In models: takeDrawnCard");
-    
+
     if (game.topDiscard instanceof Card) {
 
       // Current Game topDiscard is about to be added to card-api discard pile
