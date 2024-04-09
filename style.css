@@ -51,6 +51,18 @@ body {
   opacity: 85%;
 }
 
+#messages {
+  position: absolute;
+  width: 30%;
+  top: 330px;
+  left: 360px;
+  font-size: xxx-large;
+  font-style: italic;
+  background-color: azure;
+  text-align: center;
+  opacity: 85%;
+}
+
 .name {
   position: relative;
   width: 75px;

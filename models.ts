@@ -64,6 +64,8 @@ class Game {
   topDiscard: Card | null;
   deckIsEmpty: boolean;
   discardPileHasCards: boolean;
+  gameFinished: false;
+  roundFinished: false;
 
   /** Make instance of a Game from a deckID and an array of Players */
 
@@ -74,6 +76,8 @@ class Game {
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;
+    this.gameFinished = false;
+    this.roundFinished = false;
   }
 
   /** Static method to begin a new game.
@@ -133,7 +137,7 @@ class Game {
 
   switchTurn(): void {
     console.log("In models: switchTurn");
-    this.currPlayer = changePlayer(this.currPlayer, this.players);
+    this.currPlayer = changePlayer(this);
   }
 
   /** Handle deck reshuffling when the deck is out of cards
