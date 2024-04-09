@@ -1,5 +1,5 @@
 import axios from "axios";
-import { randPlayer, changePlayer } from "./utilties.js";
+import { randPlayers, changePlayer } from "./utilties.js";
 
 const BASE_URL = "https://deckofcardsapi.com/api/deck";
 const CARDS_PER_HAND = 6;
@@ -60,19 +60,22 @@ class Card {
 class Game {
   readonly deckID: string;
   readonly players: Player[];
+  currDealer: Player;
   currPlayer: Player;
   topDiscard: Card | null;
   deckIsEmpty: boolean;
   discardPileHasCards: boolean;
-  gameFinished: false;
-  roundFinished: false;
+  gameFinished: boolean;
+  roundFinished: boolean;
 
   /** Make instance of a Game from a deckID and an array of Players */
 
   constructor(deckID: string, players: Player[]) {
     this.deckID = deckID;
     this.players = players;
-    this.currPlayer = randPlayer(players);
+    // [this.currDealer, this.currPlayer] = randPlayers(players);
+    this.currDealer = players[3];
+    this.currPlayer = players[0];
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;

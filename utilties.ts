@@ -1,8 +1,9 @@
 import { Player, Game } from "./models.js";
 
-function randPlayer(players: Player[]): Player {
-  const playerNum = Math.floor(Math.random() * players.length);
-  return players[playerNum];
+function randPlayers(players: Player[]): Player[] {
+  const dealerNum = Math.floor(Math.random() * players.length);
+  const playerNum = dealerNum < players.length - 1 ? dealerNum + 1 : 0;
+  return [players[dealerNum], players[playerNum]];
 }
 
 function changePlayer(game: Game): Player {
@@ -11,15 +12,6 @@ function changePlayer(game: Game): Player {
     return game.players[currPlayerInd + 1];
   } else {
     return game.players[0];
-  }
-}
-
-function getPrevPlayer(game: Game): Player {
-  const currPlayerInd = game.players.indexOf(game.currPlayer);
-  if ((currPlayerInd - 1) >= 0) {
-    return game.players[currPlayerInd - 1];
-  } else {
-    return game.players[game.players.length - 1];
   }
 }
 
@@ -60,4 +52,4 @@ function randInd(inds: number[]): number {
   return rightInds[randIndInd];
 }
 
-export { randPlayer, changePlayer, randComputerFlip, getPrevPlayer };
+export { randPlayers, changePlayer, randComputerFlip };
