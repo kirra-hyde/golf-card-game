@@ -1,4 +1,4 @@
-import { Player, Game } from "./models.js";
+import { Player, Game, Card } from "./models.js";
 
 function randPlayers(players: Player[]): Player[] {
   const dealerNum = Math.floor(Math.random() * players.length);
@@ -52,4 +52,26 @@ function randInd(inds: number[]): number {
   return rightInds[randIndInd];
 }
 
-export { randPlayers, changePlayer, randComputerFlip };
+// Utility?
+function getCardFromCardSpaceID(id: string, game: Game): Card {
+  const playerInd = Number(id[1]) - 1;
+  const cardInd = Number(id[3]);
+
+  return game.players[playerInd].cards[cardInd];
+}
+
+// Utility
+function getIndFromCardSpaceId(id: string): number {
+  return Number(id[3]);
+}
+
+// Utility?
+function getCardSpaceId(cardInd: number, player: Player, game: Game): string {
+  const playerInd = game.players.indexOf(player);
+  return `p${playerInd + 1}-${cardInd}`;
+}
+
+export {
+  randPlayers, changePlayer, randComputerFlip, getCardFromCardSpaceID,
+  getIndFromCardSpaceId, getCardSpaceId
+};

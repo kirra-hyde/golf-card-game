@@ -1,5 +1,5 @@
 import axios from "axios";
-import { randPlayers, changePlayer } from "./utilties.js";
+import { changePlayer } from "./utilties.js";
 
 const BASE_URL = "https://deckofcardsapi.com/api/deck";
 const CARDS_PER_HAND = 6;
@@ -83,7 +83,7 @@ class Game {
     this.roundFinished = false;
   }
 
-  /** Static method to begin a new game.
+  /** Static method to begin a new game
    *
    * - Fetches a deck id from card API
    * - Has 4 Players made, optionally using 'playerName' for non-computer Player
