@@ -1,5 +1,5 @@
 import axios from "axios";
-import { changePlayer } from "./utilties.js";
+import { getNextPlayer, randSelectPlayer } from "./utilties.js";
 
 const BASE_URL = "https://deckofcardsapi.com/api/deck";
 const CARDS_PER_HAND = 6;
@@ -73,7 +73,8 @@ class Game {
   constructor(deckID: string, players: Player[]) {
     this.deckID = deckID;
     this.players = players;
-    // [this.currDealer, this.currPlayer] = randPlayers(players);
+    // this.currDealer = randSelectPlayer(players);
+    // this.currPlayer = getNextPlayer(players, this.currDealer);
     this.currDealer = players[3];
     this.currPlayer = players[0];
     this.topDiscard = null;
@@ -140,7 +141,7 @@ class Game {
 
   switchTurn(): void {
     console.log("In models: switchTurn");
-    this.currPlayer = changePlayer(this);
+    this.currPlayer = getNextPlayer(this.players, this.currPlayer);
   }
 
   /** Handle deck reshuffling when the deck is out of cards

@@ -1,6 +1,6 @@
 import { Game, Player, Card } from "./models.js";
 import {
-  randComputerFlip, getCardFromCardSpaceID, getIndFromCardSpaceId,
+  randSelectCardInd, getCardFromCardSpaceID, getIndFromCardSpaceId,
   getCardSpaceId
 } from "./utilties.js";
 import {
@@ -224,7 +224,7 @@ function flipComputerCards(game: Game): void {
 function computerFlip(game: Game, player: Player): void {
   console.log("In main: computerFlip");
 
-  const indOfCardToFlip = randComputerFlip(player);
+  const indOfCardToFlip = randSelectCardInd(player);
   const cardSpaceID = getCardSpaceId(indOfCardToFlip, player, game);
   flip(cardSpaceID, game);
 }
