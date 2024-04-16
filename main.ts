@@ -1,7 +1,8 @@
 import { Game, Player, Card } from "./models.js";
 import {
   randSelectCardInd, getCardFromCardSpaceID, getIndFromCardSpaceId,
-  getCardSpaceId
+  getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard,
+  getNextPlayer
 } from "./utilties.js";
 import {
   showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
@@ -43,9 +44,9 @@ async function handleGame(evt: Event): Promise<void> {
       // The player at index 0 of "game.players" is the main player.
       if (currentGame.currPlayer === currentGame.players[0]) {
         await startMainPlayerTurn(currentGame);
-      } // else {
-      //   computerTurn(currentGame);
-      // }
+      } else {
+        computerTurn(currentGame);
+      }
       currentGame.switchTurn();
       currentGame.roundFinished = true;
     }
@@ -62,7 +63,7 @@ startForm.addEventListener("submit", handleGame);
  * Handlers for main player actions
 * /
 
-/** Let main player click a face-down card to flip it, for start of game
+/** Let main player click a face-down card to flip it (for start of rounds)
  *
  * Put listener on (clickable) card-spaces in player's card-area. When clicked:
  * - Remove listener
@@ -96,7 +97,7 @@ function mainPlayerFlip(game: Game): Promise<void> {
  */
 
 async function startMainPlayerTurn(game: Game): Promise<void> {
-  console.log("In main: playerTurn");
+  console.log("In main: startMainPlayerTurn");
   await shortPause();
   showTurnMessage(game);
 
@@ -200,7 +201,7 @@ function takeOrDiscard(game: Game): Promise<void> {
  * Handlers for computer player actions
 */
 
-/** Have each computer controlled player flip a card twice, for start of game
+/** Have each computer controlled player flip a card twice (for start of rounds)
  *
  * Takes: game, a Game instance
  */
@@ -212,6 +213,65 @@ function flipComputerCards(game: Game): void {
   computerFlip(game, game.players[2]);
   computerFlip(game, game.players[3]);
   computerFlip(game, game.players[3]);
+}
+
+/** Have a message that it's a computer player's turn shown, and start the turn
+ *
+ * Takes: game, a Game instance
+ */
+
+async function computerTurn(game: Game): Promise<void> {
+  console.log("In main: computerTurn");
+  await shortPause();
+  showTurnMessage(game);
+  await longPause();
+
+  computerChoice(game);
+}
+
+// chooses whether to draw or flip
+function computerChoice(game: Game) {
+
+  let action: string;
+
+  if (unflippedCol(game)) {
+    if (chanceTrue(.5)) {
+      action = "flip";
+      const nextPlayer = getNextPlayer(game.players, game.currPlayer)
+      if (matchWithDiscard(game, nextPlayer) && chanceTrue(.96)) {
+        action = "drawDeck";
+      }
+    } else {
+      action = "drawDeck";
+    }
+  } else {
+    action = "drawDeck";
+  }
+
+  const value = game.topDiscard?.value;
+
+  if (value === "ACE" || value === "KING") {
+    action = "drawDiscard";
+  }
+  if (value === "2" && chanceTrue(.95)) {
+    action = "drawDiscard";
+  }
+  if (value === "3" && chanceTrue(.85)) {
+    action = "drawDiscard";
+  }
+  if (value === "4" && chanceTrue(.75)) {
+    action = "drawDiscard";
+  }
+  if (value === "5" && chanceTrue(.65)) {
+    action = "drawDiscard";
+  }
+  if (value === "6" && chanceTrue(.30)) {
+    action = "drawDiscard";
+  }
+
+  if (matchWithDiscard(game, game.currPlayer) && chanceTrue(.98)) {
+    action = "drawDiscard";
+  }
 }
 
 /** Have a semi-random card from a given computer player flipped
@@ -286,10 +346,10 @@ function shortPause() {
   });
 }
 
-/** Pause game for 2 seconds, simulates computer player thinking */
+/** Pause game for 3 seconds, simulates computer player thinking */
 
 function longPause() {
   return new Promise((resolve) => {
-    setTimeout(resolve, 2000);
+    setTimeout(resolve, 3000);
   });
 }

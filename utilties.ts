@@ -81,13 +81,7 @@ function getCardSpaceId(cardInd: number, player: Player, game: Game): string {
  */
 
 function randSelectCardInd(player: Player): number {
-  const unflippedInds: number[] = [];
-
-  for (let i = 0; i < player.cards.length; i++) {
-    if (player.cards[i].flipped === false) {
-      unflippedInds.push(i);
-    }
-  }
+  const unflippedInds = getUnflippedInds(player);
 
   // Indexes of cards that are good to flip, if any
   const bestInds = getBestInds(unflippedInds);
@@ -125,8 +119,40 @@ function getBestInds(inds: number[]): number[] {
   return bestInds;
 }
 
+//Takes player, returns indexes of their unflipped cards
+function getUnflippedInds(player: Player): number[] {
+  const unflippedInds: number[] = [];
+
+  for (let i = 0; i < player.cards.length; i++) {
+    if (player.cards[i].flipped === false) {
+      unflippedInds.push(i);
+    }
+  }
+
+  return unflippedInds;
+}
+
+// true if unflipped column
+function unflippedCol(game: Game): boolean {
+  const unflippedInds = getUnflippedInds(game.currPlayer);
+
+  return (getBestInds(unflippedInds).length >= 2);
+}
+
+// true if top discard matches one of currplayer's flipped cards
+function matchWithDiscard(game: Game, player: Player): boolean {
+  const flippedCards = player.cards.filter(card => card.flipped);
+  return flippedCards.some(card => card.value === game.topDiscard?.value);
+}
+
+// chance function
+function chanceTrue(chance: number): boolean {
+  return Math.random() < chance;
+}
+
+
 
 export {
   randSelectPlayer, getNextPlayer, randSelectCardInd, getCardFromCardSpaceID,
-  getIndFromCardSpaceId, getCardSpaceId
+  getIndFromCardSpaceId, getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard
 };
