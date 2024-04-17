@@ -70,6 +70,7 @@ function getCardSpaceId(cardInd: number, player: Player, game: Game): string {
 }
 
 
+
 /*******************************************************************************
  * Helpers functions used for computer player moves
 */

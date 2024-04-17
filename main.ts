@@ -7,7 +7,8 @@ import {
 import {
   showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
   clearTopDiscardSpace, clearDeckIfEmpty, showFlipMessage, showDealMessage,
-  showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle
+  showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle,
+  markUnclickable,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -45,7 +46,7 @@ async function handleGame(evt: Event): Promise<void> {
       if (currentGame.currPlayer === currentGame.players[0]) {
         await startMainPlayerTurn(currentGame);
       } else {
-        computerTurn(currentGame);
+        await computerTurn(currentGame);
       }
       currentGame.switchTurn();
       currentGame.roundFinished = true;
@@ -80,11 +81,11 @@ function mainPlayerFlip(game: Game): Promise<void> {
   // wait for main player to click on a card before continuing game
   return new Promise(function (resolve) {
 
-    $mainPlayerCardsArea.on("click", ".clickable", function (evt) {
+    $mainPlayerCardsArea.on("click", ".flippable", function (evt) {
       $mainPlayerCardsArea.off();
       const $cardSpace = $(evt.target);
-      $cardSpace.removeClass("clickable");
-
+      $cardSpace.removeClass("flippable");
+      markUnclickable(game, $cardSpace);
       flip($cardSpace.attr("id") as string, game);
       resolve();
     });
@@ -115,7 +116,7 @@ async function startMainPlayerTurn(game: Game): Promise<void> {
  * - Have card drawn from deck
  * - Let player take the card or discard it
  * If card-space is clicked:
- * - Make that card-space unclickable (once flipped, a card is locked in)
+ * - Make that card-space unflippable
  * - Have card flipped
  *
  * Takes: game, a Game instance
@@ -128,7 +129,7 @@ function drawOrFlip(game: Game): Promise<void> {
   // main player to take action before continuing game
   return new Promise(function (resolve) {
 
-    $cardsArea.on("click", ".clickable", async function (evt) {
+    $cardsArea.on("click", ".flippable, #discards, #deck", async function (evt) {
       $cardsArea.off();
       const $clicked = $(evt.target);
 
@@ -143,7 +144,8 @@ function drawOrFlip(game: Game): Promise<void> {
         await takeOrDiscard(game);
         resolve();
       } else {
-        $clicked.removeClass("clickable");
+        $clicked.removeClass("flippable");
+        markUnclickable(game, $clicked);
         flip($clicked.attr("id") as string, game);
         resolve();
       }
@@ -190,6 +192,8 @@ function takeOrDiscard(game: Game): Promise<void> {
         const cardInd = getIndFromCardSpaceId(cardSpaceId);
         await game.currPlayer.takeDrawnCard(cardInd, game);
         updatePicsOnTakeDrawnCard(game, cardSpaceId);
+        $clicked.removeClass("flipped");
+        markUnclickable(game, $clicked);
         resolve();
       }
     });
@@ -226,11 +230,23 @@ async function computerTurn(game: Game): Promise<void> {
   showTurnMessage(game);
   await longPause();
 
-  computerChoice(game);
+  const action = computerDrawOrFlip(game);
+  if (action === "flip") {
+    computerFlip(game, game.currPlayer);
+    return;
+  }
+  if (action === "drawDeck") {
+    await drawFromDeck(game);
+  }
+  if (action === "drawDiscard") {
+    drawFromDiscards(game);
+  }
+  await shortPause();
+
 }
 
 // chooses whether to draw or flip
-function computerChoice(game: Game) {
+function computerDrawOrFlip(game: Game): string {
 
   let action: string;
 
@@ -272,6 +288,7 @@ function computerChoice(game: Game) {
   if (matchWithDiscard(game, game.currPlayer) && chanceTrue(.98)) {
     action = "drawDiscard";
   }
+  return action;
 }
 
 /** Have a semi-random card from a given computer player flipped

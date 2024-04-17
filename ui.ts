@@ -1,5 +1,5 @@
 import { Game, Card } from "./models.js";
-import { getCardFromCardSpaceID } from "./utilties.js";
+import { getCardFromCardSpaceID, getCardSpaceId, getIndFromCardSpaceId } from "./utilties.js";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
@@ -122,6 +122,23 @@ function clearDeckIfEmpty(game: Game): void {
   }
 }
 
+// Check if there are any cards to be marked unclickable
+// Takes game and card space element (just flipped)
+function markUnclickable(game: Game, $cardSpace: JQuery<HTMLElement>): void {
+  const id = $cardSpace.attr("id") as string;
+  const ind = getIndFromCardSpaceId(id)
+  if (ind < 3 && game.currPlayer.cards[ind + 3].flipped) {
+    $cardSpace.removeClass("clickable");
+    const verticalId = getCardSpaceId(ind + 3, game.currPlayer, game);
+    $(`#${verticalId}`).removeClass("clickable");
+  } else if (ind >= 3  && game.currPlayer.cards[ind - 3].flipped) {
+    $cardSpace.removeClass("clickable");
+    const verticalId = getCardSpaceId(ind - 3, game.currPlayer, game);
+    $(`#${verticalId}`).removeClass("clickable");
+  }
+}
+
+
 
 /*******************************************************************************
  * Messages
@@ -180,5 +197,6 @@ function showTurnMessage(game: Game): void {
 export {
   showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
   clearTopDiscardSpace, clearDeckIfEmpty, showFlipMessage, showDealMessage,
-  showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle
+  showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle,
+  markUnclickable,
 };
