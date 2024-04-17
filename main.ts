@@ -185,7 +185,7 @@ function takeOrDiscard(game: Game): Promise<void> {
       if ($clicked.attr("id") === "discards") {
         await game.currPlayer.discardDrawnCard(game);
         showTopDiscard(game.topDiscard as Card);
-        clearDrawnCardSpace();
+        clearDrawnCardSpace(game);
         resolve();
       } else {
         const cardSpaceId = $clicked.attr("id") as string;
@@ -334,6 +334,7 @@ function drawFromDiscards(game: Game): void {
   console.log("In main: drawFromDiscards");
   game.currPlayer.drawFromDiscards(game);
   clearTopDiscardSpace(game);
+  showDrawnCard(game);
 }
 
 /** Have current player draw Card from deck, and have images updated accordingly
@@ -347,6 +348,7 @@ async function drawFromDeck(game: Game): Promise<void> {
     updatePicsOnReshuffle();
   }
   await game.currPlayer.drawFromDeck(game);
+  showDrawnCard(game);
   clearDeckIfEmpty(game);
 }
 

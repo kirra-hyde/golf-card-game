@@ -69,7 +69,12 @@ function getCardSpaceId(cardInd: number, player: Player, game: Game): string {
   return `p${playerInd + 1}-${cardInd}`;
 }
 
-
+// Returns JQuery object of current player's drawn card space
+function getDrawnCardSpaceId(game: Game): string {
+  const player = game.currPlayer;
+  const playerInd = game.players.indexOf(player);
+  return `drawn-card-${playerInd + 1}`;
+}
 
 /*******************************************************************************
  * Helpers functions used for computer player moves
@@ -155,5 +160,6 @@ function chanceTrue(chance: number): boolean {
 
 export {
   randSelectPlayer, getNextPlayer, randSelectCardInd, getCardFromCardSpaceID,
-  getIndFromCardSpaceId, getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard
+  getIndFromCardSpaceId, getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard,
+  getDrawnCardSpaceId,
 };

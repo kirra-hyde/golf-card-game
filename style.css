@@ -13,10 +13,6 @@ body {
   transform: rotate(90deg);
 }
 
-#p3 {
-  transform: rotate(180deg);
-}
-
 #p4 {
   transform: rotate(270deg);
 }
@@ -27,11 +23,35 @@ body {
   left: 3%;
 }
 
-#drawn-card-area {
+#drawn-card-area-1 {
   position: relative;
   margin: auto;
-  left: 3%;
+  left: 2%;
   top: 20px;
+}
+
+#drawn-card-area-2 {
+  position: relative;
+  margin: auto;
+  left: 1%;
+  top: 80px;
+  transform: rotate(90deg);
+}
+
+#drawn-card-area-3 {
+  position: relative;
+  margin: auto;
+  left: -2%;
+  top: -20px;
+  transform: rotate(180deg);
+}
+
+#drawn-card-area-4 {
+  position: relative;
+  margin: auto;
+  left: -2%;
+  top: -80px;
+  transform: rotate(270deg);
 }
 
 #start-screen {

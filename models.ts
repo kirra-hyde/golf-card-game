@@ -75,8 +75,8 @@ class Game {
     this.players = players;
     // this.currDealer = randSelectPlayer(players);
     // this.currPlayer = getNextPlayer(players, this.currDealer);
-    this.currDealer = players[3];
-    this.currPlayer = players[0];
+    this.currDealer = players[0];
+    this.currPlayer = players[1];
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;

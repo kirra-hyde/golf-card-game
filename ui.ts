@@ -1,5 +1,5 @@
 import { Game, Card } from "./models.js";
-import { getCardFromCardSpaceID, getCardSpaceId, getIndFromCardSpaceId } from "./utilties.js";
+import { getCardFromCardSpaceID, getCardSpaceId, getIndFromCardSpaceId, getDrawnCardSpaceId } from "./utilties.js";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
@@ -8,7 +8,6 @@ const $nameField = $("#name-field") as JQuery<HTMLInputElement>;
 const $nameSpace = $("#p1-name");
 const $discards = $("#discards");
 const $messages = $("#messages");
-const $drawnCardSpace = $("#drawn-card");
 const $deck = $("#deck");
 
 
@@ -41,7 +40,7 @@ function showCardsArea(): string {
 
 function updatePicsOnTakeDrawnCard(game: Game, cardSpaceID: string): void {
   showTopDiscard(game.topDiscard as Card);
-  clearDrawnCardSpace();
+  clearDrawnCardSpace(game);
   const card = getCardFromCardSpaceID(cardSpaceID, game);
   showCardInHand(card, cardSpaceID);
 }
@@ -93,19 +92,23 @@ function clearTopDiscardSpace(game: Game): void {
   }
 }
 
-/** Show image of main player's drawn card in their drawn card spot
+/** Show image of current player's drawn card in their drawn card spot
  *
  * Takes: game, a Game instance
  */
 function showDrawnCard(game: Game): void {
-  const card = game.players[0].drawnCard as Card;
+  const card = game.currPlayer.drawnCard as Card;
+  const drawnCardSpaceId = getDrawnCardSpaceId(game);
+  const $drawnCardSpace = $(`#${drawnCardSpaceId}`);
   $drawnCardSpace.attr("src", card.image);
   $drawnCardSpace.attr("alt", `front of card, a ${card.value}`);
 }
 
 /** Show empty placeholder image in main player's drawn card spot */
 
-function clearDrawnCardSpace(): void {
+function clearDrawnCardSpace(game: Game): void {
+  const drawnCardSpaceId = getDrawnCardSpaceId(game);
+  const $drawnCardSpace = $(`#${drawnCardSpaceId}`);
   $drawnCardSpace.attr("src", "./images/drawn_placeholder.png");
   $drawnCardSpace.attr("alt", "your drawn cards go here");
 }
