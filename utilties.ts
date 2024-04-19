@@ -145,7 +145,7 @@ function unflippedCol(game: Game): boolean {
   return (getBestInds(unflippedInds).length >= 2);
 }
 
-// true if top discard matches one of currplayer's flipped cards
+// true if top discard matches one of currPlayer's flipped cards
 function matchWithDiscard(game: Game, player: Player): boolean {
   const flippedCards = player.cards.filter(card => card.flipped);
   return flippedCards.some(card => card.value === game.topDiscard?.value);

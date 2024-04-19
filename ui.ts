@@ -1,3 +1,4 @@
+import { c } from "vite/dist/node/types.d-FdqQ54oU.js";
 import { Game, Card } from "./models.js";
 import { getCardFromCardSpaceID, getCardSpaceId, getIndFromCardSpaceId, getDrawnCardSpaceId } from "./utilties.js";
 
@@ -125,20 +126,35 @@ function clearDeckIfEmpty(game: Game): void {
   }
 }
 
-// Check if there are any cards to be marked unclickable
-// Takes game and card space element (just flipped)
-function markUnclickable(game: Game, $cardSpace: JQuery<HTMLElement>): void {
-  const id = $cardSpace.attr("id") as string;
-  const ind = getIndFromCardSpaceId(id)
-  if (ind < 3 && game.currPlayer.cards[ind + 3].flipped) {
-    $cardSpace.removeClass("clickable");
-    const verticalId = getCardSpaceId(ind + 3, game.currPlayer, game);
-    $(`#${verticalId}`).removeClass("clickable");
-  } else if (ind >= 3  && game.currPlayer.cards[ind - 3].flipped) {
-    $cardSpace.removeClass("clickable");
-    const verticalId = getCardSpaceId(ind - 3, game.currPlayer, game);
-    $(`#${verticalId}`).removeClass("clickable");
-  }
+
+// Take card indexes (and game) and makes those cards unclickable
+function makeUnclickable(game: Game, inds: number[]): void {
+  const id1 = getCardSpaceId(inds[0], game.currPlayer, game);
+  const id2 = getCardSpaceId(inds[1], game.currPlayer, game);
+  const $cardSpace1 = $(`#${id1}`);
+  const $cardSpace2 = $(`#${id2}`);
+
+  $cardSpace1.removeClass("clickable");
+  $cardSpace2.removeClass("clickable");
+}
+
+// Updates UI to how it should be at the start of a round. Makes images
+// back of cards, and makes main player's cards clickable and flippable.
+function resetCardArea() {
+  console.log("in resetCardArea");
+
+  const $cards = $(".cards");
+  $cards.attr("src", "./images/back.png");
+  $cards.attr("alt", "back of card");
+
+  const $mainPlayerCards = $(".main");
+  $mainPlayerCards.addClass("clickable");
+  $mainPlayerCards.addClass("flippable");
+
+  $deck.attr("src", "./images/deck.png");
+  $deck.attr("alt", "main deck of cards");
+  $discards.attr("src", "./images/discards_placeholder.png");
+  $discards.attr("alt", "discards go here");
 }
 
 
@@ -201,5 +217,5 @@ export {
   showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
   clearTopDiscardSpace, clearDeckIfEmpty, showFlipMessage, showDealMessage,
   showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle,
-  markUnclickable,
+  makeUnclickable, resetCardArea
 };

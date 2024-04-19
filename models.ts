@@ -20,6 +20,7 @@ type tCardData = {
  * - value: string of the rank of the card  (Ex. "ACE", "KING", "2", "10")
  * - image: string of url with picture of the card
  * - flipped: boolean, false by default, true if player flips card to be face-up
+ * - locked: boolean, false by default, true if card gets locked into place
  */
 
 class Card {
@@ -27,6 +28,7 @@ class Card {
   readonly value: string;
   flipped: boolean;
   readonly image: string;
+  locked: boolean;
 
   /** Make instance of a Card from a value, image, and code */
 
@@ -35,6 +37,7 @@ class Card {
     this.value = value;
     this.image = image;
     this.flipped = false;
+    this.locked = false;
   }
 
   /** Make a Card flipped*/
@@ -75,8 +78,8 @@ class Game {
     this.players = players;
     // this.currDealer = randSelectPlayer(players);
     // this.currPlayer = getNextPlayer(players, this.currDealer);
-    this.currDealer = players[0];
-    this.currPlayer = players[1];
+    this.currDealer = players[3];
+    this.currPlayer = players[0];
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;
@@ -174,6 +177,45 @@ class Game {
     this.discardPileHasCards = false;
     this.deckIsEmpty = false;
   }
+
+  /** Start a new round
+   *
+   * - Set roundFinished to false
+   * - Set currDealer to the next Player after old currDealer
+   * - Set currPlayer to the next Player after new currDealer
+   * - Add all cards to main deck and shuffle it
+   */
+
+  async switchRound(): Promise<void> {
+    console.log("In models: switchRound");
+    this.currDealer = getNextPlayer(this.players, this.currDealer);
+    this.currPlayer = getNextPlayer(this.players, this.currDealer);
+    this.roundFinished = false;
+
+    await axios.get(`${BASE_URL}/${this.deckID}/shuffle`);
+  }
+
+  /** Locks Cards if both Cards in a column have been flipped
+   *
+   * Takes:
+   * - cardInd: Number of the index of a Card that was just flipped
+   * - (optional) player: A Player instance whose cards we're locking, if needed
+   * Returns: array of two indexes of cards that were just locked, if any
+   */
+
+  lockCards(cardInd: number, player: Player = this.currPlayer): number[] | void {
+    const cards = player.cards;
+    if (cardInd < 3 && cards[cardInd + 3].flipped) {
+      cards[cardInd].locked = true;
+      cards[cardInd + 3].locked = true;
+      return [cardInd, cardInd + 3];
+    }
+    if (cardInd >= 3 && cards[cardInd - 3].flipped) {
+      cards[cardInd].locked = true;
+      cards[cardInd - 3].locked = true;
+      return [cardInd, cardInd - 3];
+    }
+  }
 }
 
 
@@ -183,7 +225,7 @@ class Game {
  * - cards: array of Player's cards. Ex. [{ value, image, flipped, code }]
  * - name: string of Player's name
  * - drawnCard: Card Player had drawn but not yet taken.  (Can keep or discard.)
- *      Ex. { value, image, flipped, code }
+ *      Ex. { value, image, flipped, code, locked }
  */
 
 class Player {

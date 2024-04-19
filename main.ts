@@ -8,7 +8,7 @@ import {
   showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
   clearTopDiscardSpace, clearDeckIfEmpty, showFlipMessage, showDealMessage,
   showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle,
-  markUnclickable,
+  makeUnclickable, resetCardArea,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -29,19 +29,9 @@ async function handleGame(evt: Event): Promise<void> {
   const mainPlayerName = showCardsArea();
   const currentGame = await Game.startGame(mainPlayerName);
 
-  showDealMessage(currentGame);
-  await currentGame.dealGame();
-  showTopDiscard(currentGame.topDiscard as Card);
-
-  flipComputerCards(currentGame);
-  await shortPause();
-  showFlipMessage();
-  await mainPlayerFlip(currentGame);
-  await mainPlayerFlip(currentGame);
-
   while (currentGame.gameFinished === false) {
     while (currentGame.roundFinished === false) {
-
+      await startRound(currentGame);
       // The player at index 0 of "game.players" is the main player.
       if (currentGame.currPlayer === currentGame.players[0]) {
         await startMainPlayerTurn(currentGame);
@@ -49,8 +39,13 @@ async function handleGame(evt: Event): Promise<void> {
         await computerTurn(currentGame);
       }
       currentGame.switchTurn();
+      // Function to check if round is finished, and if so, make roundFinished true
       currentGame.roundFinished = true;
     }
+    // Some message with current scores
+    await currentGame.switchRound();
+    resetCardArea();
+    // Function to check if game is finished, and if so, make gameFinished true
     currentGame.gameFinished = true;
   }
   console.log("FINISHED!!");
@@ -59,6 +54,23 @@ async function handleGame(evt: Event): Promise<void> {
 // Launches the game
 startForm.addEventListener("submit", handleGame);
 
+/** Starts a new round
+ *
+ * - Has cards dealt
+ * - Has main and computer players flip 2 cards
+ */
+
+async function startRound(game: Game) {
+  showDealMessage(game);
+  await game.dealGame();
+  showTopDiscard(game.topDiscard as Card);
+
+  flipComputerCards(game);
+  await shortPause();
+  showFlipMessage();
+  await mainPlayerFlip(game);
+  await mainPlayerFlip(game);
+}
 
 /*******************************************************************************
  * Handlers for main player actions
@@ -85,7 +97,11 @@ function mainPlayerFlip(game: Game): Promise<void> {
       $mainPlayerCardsArea.off();
       const $cardSpace = $(evt.target);
       $cardSpace.removeClass("flippable");
-      markUnclickable(game, $cardSpace);
+      const id = $cardSpace.attr("id") as string;
+      const inds = game.lockCards(getIndFromCardSpaceId(id), game.players[0]);
+      if (inds) {
+        makeUnclickable(game, inds);
+      }
       flip($cardSpace.attr("id") as string, game);
       resolve();
     });
@@ -145,7 +161,11 @@ function drawOrFlip(game: Game): Promise<void> {
         resolve();
       } else {
         $clicked.removeClass("flippable");
-        markUnclickable(game, $clicked);
+        const id = $clicked.attr("id") as string;
+        const inds = game.lockCards(getIndFromCardSpaceId(id));
+        if (inds) {
+          makeUnclickable(game, inds);
+        }
         flip($clicked.attr("id") as string, game);
         resolve();
       }
@@ -193,7 +213,11 @@ function takeOrDiscard(game: Game): Promise<void> {
         await game.currPlayer.takeDrawnCard(cardInd, game);
         updatePicsOnTakeDrawnCard(game, cardSpaceId);
         $clicked.removeClass("flipped");
-        markUnclickable(game, $clicked);
+        const id = $clicked.attr("id") as string;
+        const inds = game.lockCards(getIndFromCardSpaceId(id));
+        if (inds) {
+          makeUnclickable(game, inds);
+        }
         resolve();
       }
     });
@@ -232,17 +256,17 @@ async function computerTurn(game: Game): Promise<void> {
 
   const action = computerDrawOrFlip(game);
   if (action === "flip") {
-    computerFlip(game, game.currPlayer);
+    computerFlip(game);
     return;
   }
   if (action === "drawDeck") {
     await drawFromDeck(game);
+    await shortPause();
   }
   if (action === "drawDiscard") {
     drawFromDiscards(game);
+    await shortPause();
   }
-  await shortPause();
-
 }
 
 // chooses whether to draw or flip
@@ -291,19 +315,26 @@ function computerDrawOrFlip(game: Game): string {
   return action;
 }
 
+// function computerTakeOrDiscard(game: Game) {
+//   const value = game.currPlayer.drawnCard?.value;
+
+//   if
+// }
+
 /** Have a semi-random card from a given computer player flipped
  *
  * Takes:
  * - game: a Game instance
- * - player: a Player instance, representing a computer controlled player
+ * - (optional) player: a Player instance, of a computer controlled player
  */
 
-function computerFlip(game: Game, player: Player): void {
+function computerFlip(game: Game, player: Player = game.currPlayer): void {
   console.log("In main: computerFlip");
 
   const indOfCardToFlip = randSelectCardInd(player);
   const cardSpaceID = getCardSpaceId(indOfCardToFlip, player, game);
   flip(cardSpaceID, game);
+  game.lockCards(indOfCardToFlip, player);
 }
 
 
