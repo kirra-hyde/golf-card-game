@@ -1,4 +1,4 @@
-import { Player, Game, Card } from "./models.js";
+import { Player, Game } from "./models.js";
 
 /** Randomly choose Player from array of Players
  *
@@ -28,21 +28,6 @@ function getNextPlayer(players: Player[], player: Player): Player {
   }
 }
 
-/** Get Card instance from id of HTML element affiliated with the card
- *
- * Takes:
- * - id: string of id of an HTML card element
- * - game: Game instance
- * Returns: Card instance
- */
-
-function getCardFromCardSpaceID(id: string, game: Game): Card {
-  const playerInd = Number(id[1]) - 1;
-  const cardInd = Number(id[3]);
-
-  return game.players[playerInd].cards[cardInd];
-}
-
 /** Get index of Card from id of HTML element affiliated with the Card
  *
  * Takes: id, a string of id of an HTML card element
@@ -53,27 +38,34 @@ function getIndFromCardSpaceId(id: string): number {
   return Number(id[3]);
 }
 
-/** Given a Card's index and the Player who has the Card, get the id of the
- *  HTML element affiliated with the Card
+/** Get the id of the HTML element of a player's Card
  *
  * Takes:
  * - cardInd: a number representing a Card's index
- * - player: a Player instance
  * - game: a Game instance
+ * - player: a Player instance (defaults to current player)
  *
  * Returns: the id of an HTML card element
  */
 
-function getCardSpaceId(cardInd: number, player: Player, game: Game): string {
-  const playerInd = game.players.indexOf(player);
+function getCardSpaceId(cardInd: number, game: Game, player: Player = game.currPlayer): string {
+  const playerInd = getPlayerIndex(game, player);
   return `p${playerInd + 1}-${cardInd}`;
 }
 
-// Returns JQuery object of current player's drawn card space
+/** Get the id of the drawn card space HTML element of the current player
+ *
+ * Takes: game, a Game instance
+ * Returns: a string of the id of a drawn card space HTML element
+ */
+
 function getDrawnCardSpaceId(game: Game): string {
-  const player = game.currPlayer;
-  const playerInd = game.players.indexOf(player);
-  return `drawn-card-${playerInd + 1}`;
+  return `drawn-card-${getPlayerIndex(game) + 1}`;
+}
+
+// Get player's index
+function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
+  return game.players.indexOf(player);
 }
 
 /*******************************************************************************
@@ -82,11 +74,13 @@ function getDrawnCardSpaceId(game: Game): string {
 
 /** Randomly choose an index of card to flip from among reasonable choices
  *
- * Takes: player, a Player instance
+ * Takes:
+ * - game, a Game instance
+ * - player, a Player instance (defaults to current player)
  * Returns: number representing an index in an array of Card instances
  */
 
-function randSelectCardInd(player: Player): number {
+function randSelectCardInd(game: Game, player: Player = game.currPlayer): number {
   const unflippedInds = getUnflippedInds(player);
 
   // Indexes of cards that are good to flip, if any
@@ -157,9 +151,8 @@ function chanceTrue(chance: number): boolean {
 }
 
 
-
 export {
-  randSelectPlayer, getNextPlayer, randSelectCardInd, getCardFromCardSpaceID,
-  getIndFromCardSpaceId, getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard,
+  randSelectPlayer, getNextPlayer, randSelectCardInd, getIndFromCardSpaceId,
+  getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard, getPlayerIndex,
   getDrawnCardSpaceId,
 };

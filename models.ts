@@ -79,7 +79,7 @@ class Game {
     // this.currDealer = randSelectPlayer(players);
     // this.currPlayer = getNextPlayer(players, this.currDealer);
     this.currDealer = players[3];
-    this.currPlayer = players[0];
+    this.currPlayer = getNextPlayer(players, this.currDealer);
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;
@@ -241,7 +241,7 @@ class Player {
     this.drawnCard = null;
   }
 
-  /** Make a Card from Player's card array flipped
+  /** Flip a card
    *
    * Takes: cardInd, number representing index of Card to be flipped
    */
@@ -329,7 +329,7 @@ class Player {
     this.drawnCard = null;
   }
 
-  /** Trade Card in player's cards array with drawnCard
+  /** Trade Card in cards array with drawnCard
    *  Discard Card that was previously in player's cards array
    *
    * - If the Game's topDiscard is a Card, use its code to add the card

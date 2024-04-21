@@ -1,14 +1,12 @@
 import { Game, Player, Card } from "./models.js";
 import {
-  randSelectCardInd, getCardFromCardSpaceID, getIndFromCardSpaceId,
-  getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard,
-  getNextPlayer
+  randSelectCardInd, getIndFromCardSpaceId, getCardSpaceId, getDrawnCardSpaceId,
+  chanceTrue, matchWithDiscard, getNextPlayer, getPlayerIndex, unflippedCol,
 } from "./utilties.js";
 import {
-  showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
-  clearTopDiscardSpace, clearDeckIfEmpty, showFlipMessage, showDealMessage,
-  showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle,
-  makeUnclickable, resetCardArea,
+  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
+  clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
+  updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -30,13 +28,15 @@ async function handleGame(evt: Event): Promise<void> {
   const currentGame = await Game.startGame(mainPlayerName);
 
   while (currentGame.gameFinished === false) {
+    await startRound(currentGame);
+
     while (currentGame.roundFinished === false) {
-      await startRound(currentGame);
+
       // The player at index 0 of "game.players" is the main player.
       if (currentGame.currPlayer === currentGame.players[0]) {
-        await startMainPlayerTurn(currentGame);
+        await handleMainPlayerTurn(currentGame);
       } else {
-        await computerTurn(currentGame);
+        await handleComputerTurn(currentGame);
       }
       currentGame.switchTurn();
       // Function to check if round is finished, and if so, make roundFinished true
@@ -54,18 +54,20 @@ async function handleGame(evt: Event): Promise<void> {
 // Launches the game
 startForm.addEventListener("submit", handleGame);
 
-/** Starts a new round
+/** Start a new round
  *
- * - Has cards dealt
- * - Has main and computer players flip 2 cards
+ * - Have cards dealt
+ * - Have main and computer players flip 2 cards
  */
 
 async function startRound(game: Game) {
   showDealMessage(game);
   await game.dealGame();
-  showTopDiscard(game.topDiscard as Card);
+  showCard(game.topDiscard as Card, "discards");
 
-  flipComputerCards(game);
+  for (let player of game.players.slice(1)) {
+    flip(game, randSelectCardInd(game, player), player);
+  }
   await shortPause();
   showFlipMessage();
   await mainPlayerFlip(game);
@@ -80,7 +82,6 @@ async function startRound(game: Game) {
  *
  * Put listener on (clickable) card-spaces in player's card-area. When clicked:
  * - Remove listener
- * - Make that card-space unclickable (once flipped, a card is locked in)
  * - Have card flipped
  *
  * Takes: game, a Game instance
@@ -96,13 +97,8 @@ function mainPlayerFlip(game: Game): Promise<void> {
     $mainPlayerCardsArea.on("click", ".flippable", function (evt) {
       $mainPlayerCardsArea.off();
       const $cardSpace = $(evt.target);
-      $cardSpace.removeClass("flippable");
       const id = $cardSpace.attr("id") as string;
-      const inds = game.lockCards(getIndFromCardSpaceId(id), game.players[0]);
-      if (inds) {
-        makeUnclickable(game, inds);
-      }
-      flip($cardSpace.attr("id") as string, game);
+      flip(game, getIndFromCardSpaceId(id), game.players[0]);
       resolve();
     });
   });
@@ -113,7 +109,7 @@ function mainPlayerFlip(game: Game): Promise<void> {
  * Takes: game, a Game instance
  */
 
-async function startMainPlayerTurn(game: Game): Promise<void> {
+async function handleMainPlayerTurn(game: Game): Promise<void> {
   console.log("In main: startMainPlayerTurn");
   await shortPause();
   showTurnMessage(game);
@@ -132,7 +128,6 @@ async function startMainPlayerTurn(game: Game): Promise<void> {
  * - Have card drawn from deck
  * - Let player take the card or discard it
  * If card-space is clicked:
- * - Make that card-space unflippable
  * - Have card flipped
  *
  * Takes: game, a Game instance
@@ -151,22 +146,15 @@ function drawOrFlip(game: Game): Promise<void> {
 
       if ($clicked.attr("id") === "discards") {
         drawFromDiscards(game);
-        showDrawnCard(game);
         await takeOrDiscard(game);
         resolve();
       } else if ($clicked.attr("id") === "deck") {
         await drawFromDeck(game);
-        showDrawnCard(game);
         await takeOrDiscard(game);
         resolve();
       } else {
-        $clicked.removeClass("flippable");
         const id = $clicked.attr("id") as string;
-        const inds = game.lockCards(getIndFromCardSpaceId(id));
-        if (inds) {
-          makeUnclickable(game, inds);
-        }
-        flip($clicked.attr("id") as string, game);
+        flip(game, getIndFromCardSpaceId(id));
         resolve();
       }
     });
@@ -179,10 +167,8 @@ function drawOrFlip(game: Game): Promise<void> {
  * area. When clicked, remove listener.
  * If discard pile is clicked:
  * - Have the player discard the drawn Card instance
- * - Have the drawn card's image displayed in discard pile
  * If card-space is clicked:
  * - Have player discard Card linked to space and take drawn Card in its place
- * - Have the images in discard pile and card-space updated accordingly
  *
  * Takes: game, a Game instance
  */
@@ -203,21 +189,11 @@ function takeOrDiscard(game: Game): Promise<void> {
       const $clicked = $(evt.target);
 
       if ($clicked.attr("id") === "discards") {
-        await game.currPlayer.discardDrawnCard(game);
-        showTopDiscard(game.topDiscard as Card);
-        clearDrawnCardSpace(game);
+        await discardDrawnCard(game);
         resolve();
       } else {
         const cardSpaceId = $clicked.attr("id") as string;
-        const cardInd = getIndFromCardSpaceId(cardSpaceId);
-        await game.currPlayer.takeDrawnCard(cardInd, game);
-        updatePicsOnTakeDrawnCard(game, cardSpaceId);
-        $clicked.removeClass("flipped");
-        const id = $clicked.attr("id") as string;
-        const inds = game.lockCards(getIndFromCardSpaceId(id));
-        if (inds) {
-          makeUnclickable(game, inds);
-        }
+        await takeDrawnCard(game, getIndFromCardSpaceId(cardSpaceId));
         resolve();
       }
     });
@@ -229,26 +205,12 @@ function takeOrDiscard(game: Game): Promise<void> {
  * Handlers for computer player actions
 */
 
-/** Have each computer controlled player flip a card twice (for start of rounds)
- *
- * Takes: game, a Game instance
- */
-
-function flipComputerCards(game: Game): void {
-  computerFlip(game, game.players[1]);
-  computerFlip(game, game.players[1]);
-  computerFlip(game, game.players[2]);
-  computerFlip(game, game.players[2]);
-  computerFlip(game, game.players[3]);
-  computerFlip(game, game.players[3]);
-}
-
 /** Have a message that it's a computer player's turn shown, and start the turn
  *
  * Takes: game, a Game instance
  */
 
-async function computerTurn(game: Game): Promise<void> {
+async function handleComputerTurn(game: Game): Promise<void> {
   console.log("In main: computerTurn");
   await shortPause();
   showTurnMessage(game);
@@ -256,7 +218,7 @@ async function computerTurn(game: Game): Promise<void> {
 
   const action = computerDrawOrFlip(game);
   if (action === "flip") {
-    computerFlip(game);
+    flip(game, randSelectCardInd(game));
     return;
   }
   if (action === "drawDeck") {
@@ -321,38 +283,40 @@ function computerDrawOrFlip(game: Game): string {
 //   if
 // }
 
-/** Have a semi-random card from a given computer player flipped
- *
- * Takes:
- * - game: a Game instance
- * - (optional) player: a Player instance, of a computer controlled player
- */
-
-function computerFlip(game: Game, player: Player = game.currPlayer): void {
-  console.log("In main: computerFlip");
-
-  const indOfCardToFlip = randSelectCardInd(player);
-  const cardSpaceID = getCardSpaceId(indOfCardToFlip, player, game);
-  flip(cardSpaceID, game);
-  game.lockCards(indOfCardToFlip, player);
-}
-
 
 /*******************************************************************************
  * Handlers for actions taken by both main player and computer players
 */
 
-/** Flip a card.  Have Card instance flipped and its image displayed
+/** Flip a card
+ *
+ * - Have Card instance flipped
+ * - Have Card and the other Card in its column locked, if needed
+ * - Have the card's image displayed
+ * If main player's turn:
+ *  - Remove class "flippable" from card's HTML element
+ *  - Remove class "clickable" from HTML elements of locked cards, if any
  *
  * Takes:
- * - cardSpaceId: a string of the id of an HTML element for showing cards
- * - game: game, a Game instance
+ * - game: a Game instance
+ * - cardInd: a number of the index of the card to be flipped
+ * - player: a Player instance (defaults to current player)
  */
 
-function flip(cardSpaceID: string, game: Game): void {
-  const card = getCardFromCardSpaceID(cardSpaceID, game);
-  card.flip();
-  showCardInHand(card, cardSpaceID);
+function flip(game: Game, cardInd: number, player: Player = game.currPlayer): void {
+  player.flipCard(cardInd);
+  const lockedInds = game.lockCards(cardInd, player);
+
+  const playerInd = getPlayerIndex(game, player);
+  showCard(player.cards[cardInd], `p${playerInd + 1}-${cardInd}`);
+
+  // If the card flipped is the main player's, update classes
+  if (player === game.players[0]) {
+    $(`#${getCardSpaceId(cardInd, game, player)}`).removeClass("flippable");
+    if (lockedInds) {
+      makeUnclickable(game, lockedInds, player);
+    }
+  }
 }
 
 /** Have current player take Card at top of discard pile as their drawn card,
@@ -365,7 +329,8 @@ function drawFromDiscards(game: Game): void {
   console.log("In main: drawFromDiscards");
   game.currPlayer.drawFromDiscards(game);
   clearTopDiscardSpace(game);
-  showDrawnCard(game);
+  const card = game.currPlayer.drawnCard as Card;
+  showCard(card, getDrawnCardSpaceId(game));
 }
 
 /** Have current player draw Card from deck, and have images updated accordingly
@@ -379,27 +344,47 @@ async function drawFromDeck(game: Game): Promise<void> {
     updatePicsOnReshuffle();
   }
   await game.currPlayer.drawFromDeck(game);
-  showDrawnCard(game);
+  const card = game.currPlayer.drawnCard as Card;
+  showCard(card, getDrawnCardSpaceId(game));
   clearDeckIfEmpty(game);
 }
 
+/** Have currPlayer discard their drawn card. Have images updated accordingly.
+ *
+ * Takes: game, a Game instance
+ */
 
-/*******************************************************************************
- * Pauses
-*/
+async function discardDrawnCard(game: Game): Promise<void> {
+  await game.currPlayer.discardDrawnCard(game);
 
-/** Pause game for .8 seconds, for image changes to not feel too rushed */
-
-function shortPause() {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 800);
-  });
+  showCard(game.topDiscard as Card, "discards");
+  clearDrawnCardSpace(game);
 }
 
-/** Pause game for 3 seconds, simulates computer player thinking */
+/** Take a drawn card
+ *
+ * - Have current player swap their drawn Card with a Card in their hand
+ * - Have taken Card and the other Card in its column locked, if needed
+ * - Have images updated accordingly
+ * If main player's turn:
+ *  - Remove class "flippable" from taken card's HTML element
+ *  - Remove class "clickable" from HTML elements of locked cards, if any
+ */
 
-function longPause() {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 3000);
-  });
+async function takeDrawnCard(game: Game, cardInd: number): Promise<void> {
+  await game.currPlayer.takeDrawnCard(cardInd, game);
+  const inds = game.lockCards(cardInd);
+
+  showCard(game.topDiscard as Card, "discards");
+  clearDrawnCardSpace(game);
+  const card = game.currPlayer.cards[cardInd];
+  const cardSpaceId = getCardSpaceId(cardInd, game);
+  showCard(card, cardSpaceId);
+
+  if (game.currPlayer === game.players[0]) {
+    $(`#${cardSpaceId}`).removeClass("flipped");
+    if (inds) {
+      makeUnclickable(game, inds);
+    }
+  }
 }

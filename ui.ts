@@ -1,6 +1,5 @@
-import { c } from "vite/dist/node/types.d-FdqQ54oU.js";
-import { Game, Card } from "./models.js";
-import { getCardFromCardSpaceID, getCardSpaceId, getIndFromCardSpaceId, getDrawnCardSpaceId } from "./utilties.js";
+import { Game, Card, Player } from "./models.js";
+import { getCardSpaceId, getDrawnCardSpaceId } from "./utilties.js";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
@@ -28,24 +27,6 @@ function showCardsArea(): string {
   return mainPlayerName;
 }
 
-/** Update images when player takes their drawn card
- *
- * - Have pic of replaced card shown in discard pile
- * - Have pic of taken card shown in player's card area
- * - Have holder space shown in player's drawn card spot
- *
- * Takes:
- * - game: a Game instance
- * - cardSpaceId: a string of the id of an HTML element for showing cards
- */
-
-function updatePicsOnTakeDrawnCard(game: Game, cardSpaceID: string): void {
-  showTopDiscard(game.topDiscard as Card);
-  clearDrawnCardSpace(game);
-  const card = getCardFromCardSpaceID(cardSpaceID, game);
-  showCardInHand(card, cardSpaceID);
-}
-
 /** Update images when discards are shuffled into the main deck */
 
 function updatePicsOnReshuffle(): void {
@@ -55,28 +36,19 @@ function updatePicsOnReshuffle(): void {
   $deck.attr("alt", "main deck of cards");
 }
 
-/** Show image of a card in a space in a player's card area
+/** Show image of a card
  *
  * Takes:
  * - card: Card instance, whose image will be shown
  * - cardSpaceId: string of the id of the HTML element where image will be shown
  */
 
-function showCardInHand(card: Card, cardSpaceID: string): void {
+function showCard(card: Card, cardSpaceID: string): void {
   const $cardSpace = $(`#${cardSpaceID}`);
   $cardSpace.attr("src", card.image);
   $cardSpace.attr("alt", `front of card, a ${card.value}`);
 }
 
-/** Show image of card in discard pile
- *
- * Takes: card, a Card instance, whose image will be shown
- */
-
-function showTopDiscard(card: Card): void {
-  $discards.attr("src", card.image);
-  $discards.attr("alt", `front of card, a ${card.value}`);
-}
 
 /** Remove image of card from discard pile
  *
@@ -93,25 +65,13 @@ function clearTopDiscardSpace(game: Game): void {
   }
 }
 
-/** Show image of current player's drawn card in their drawn card spot
- *
- * Takes: game, a Game instance
- */
-function showDrawnCard(game: Game): void {
-  const card = game.currPlayer.drawnCard as Card;
-  const drawnCardSpaceId = getDrawnCardSpaceId(game);
-  const $drawnCardSpace = $(`#${drawnCardSpaceId}`);
-  $drawnCardSpace.attr("src", card.image);
-  $drawnCardSpace.attr("alt", `front of card, a ${card.value}`);
-}
-
-/** Show empty placeholder image in main player's drawn card spot */
+/** Show empty placeholder image in current player's drawn card spot */
 
 function clearDrawnCardSpace(game: Game): void {
   const drawnCardSpaceId = getDrawnCardSpaceId(game);
   const $drawnCardSpace = $(`#${drawnCardSpaceId}`);
   $drawnCardSpace.attr("src", "./images/drawn_placeholder.png");
-  $drawnCardSpace.attr("alt", "your drawn cards go here");
+  $drawnCardSpace.attr("alt", "drawn card spot");
 }
 
 /** If deck is empty, show image of empty deck placeholder in deck area
@@ -127,19 +87,27 @@ function clearDeckIfEmpty(game: Game): void {
 }
 
 
-// Take card indexes (and game) and makes those cards unclickable
-function makeUnclickable(game: Game, inds: number[]): void {
-  const id1 = getCardSpaceId(inds[0], game.currPlayer, game);
-  const id2 = getCardSpaceId(inds[1], game.currPlayer, game);
-  const $cardSpace1 = $(`#${id1}`);
-  const $cardSpace2 = $(`#${id2}`);
+/** Remove "clickable" class from a column of flipped cards
+ *
+ * Takes:
+ * - game: a Game instance
+ * - inds: an array of numbers representing the indexes of cards
+ * - player: a Player instance, the owner of the cards (defaults to currPlayer)
+ */
 
-  $cardSpace1.removeClass("clickable");
-  $cardSpace2.removeClass("clickable");
+function makeUnclickable(game: Game, inds: number[], player: Player = game.currPlayer): void {
+  const id1 = getCardSpaceId(inds[0], game, player);
+  const id2 = getCardSpaceId(inds[1], game, player);
+  $(`#${id1}`).removeClass("clickable");
+  $(`#${id2}`).removeClass("clickable");
 }
 
-// Updates UI to how it should be at the start of a round. Makes images
-// back of cards, and makes main player's cards clickable and flippable.
+/** Set UI for a new round
+ *
+ * - Show card backs for cards in players hand, full deck, and empty discard pile
+ * - Give HTML elements for main player's cards classes "clickable" and "flippable"
+ */
+
 function resetCardArea() {
   console.log("in resetCardArea");
 
@@ -147,7 +115,7 @@ function resetCardArea() {
   $cards.attr("src", "./images/back.png");
   $cards.attr("alt", "back of card");
 
-  const $mainPlayerCards = $(".main");
+  const $mainPlayerCards = $("#p1 img");
   $mainPlayerCards.addClass("clickable");
   $mainPlayerCards.addClass("flippable");
 
@@ -212,10 +180,29 @@ function showTurnMessage(game: Game): void {
   }, 800);
 }
 
+/*******************************************************************************
+ * Pauses
+*/
+
+/** Pause game for .8 seconds, for image changes to not feel too rushed */
+
+function shortPause() {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 800);
+  });
+}
+
+/** Pause game for 3 seconds, simulates computer player thinking */
+
+function longPause() {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 3000);
+  });
+}
+
 
 export {
-  showCardsArea, updatePicsOnTakeDrawnCard, showDrawnCard, clearDrawnCardSpace,
-  clearTopDiscardSpace, clearDeckIfEmpty, showFlipMessage, showDealMessage,
-  showTurnMessage, showTopDiscard, showCardInHand, updatePicsOnReshuffle,
-  makeUnclickable, resetCardArea
+  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
+  clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
+  updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
 };
