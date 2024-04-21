@@ -17,7 +17,6 @@ const $mainPlayerCardsArea = $("#p1");
 const startForm = document.getElementById("start-form") as HTMLFormElement;
 const $deck = $("#deck");
 
-
 /** Primary game handler */
 
 async function handleGame(evt: Event): Promise<void> {
@@ -67,12 +66,14 @@ async function startRound(game: Game) {
 
   for (let player of game.players.slice(1)) {
     flip(game, randSelectCardInd(game, player), player);
+    flip(game, randSelectCardInd(game, player), player);
   }
   await shortPause();
   showFlipMessage();
-  await mainPlayerFlip(game);
-  await mainPlayerFlip(game);
+  await setupFlipListeners(game);
+  await setupFlipListeners(game);
 }
+
 
 /*******************************************************************************
  * Handlers for main player actions
@@ -87,12 +88,12 @@ async function startRound(game: Game) {
  * Takes: game, a Game instance
  */
 
-function mainPlayerFlip(game: Game): Promise<void> {
+function setupFlipListeners(game: Game): Promise<void> {
   console.log("In main: mainPlayerFlip");
 
   // It returns a Promise so that we can "await" it in "handleGame", and thus
   // wait for main player to click on a card before continuing game
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
 
     $mainPlayerCardsArea.on("click", ".flippable", function (evt) {
       $mainPlayerCardsArea.off();
@@ -104,7 +105,7 @@ function mainPlayerFlip(game: Game): Promise<void> {
   });
 }
 
-/** Have a message that it's the main player's turn shown, and start the turn
+/** Handler for the main player's turn
  *
  * Takes: game, a Game instance
  */
@@ -114,88 +115,63 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
   await shortPause();
   showTurnMessage(game);
 
-  await drawOrFlip(game);
+  const drawOrFlipChoice = await setupFlipOrDrawListeners();
+
+  if (drawOrFlipChoice === "discards") {
+    drawFromDiscards(game);
+  } else if (drawOrFlipChoice === "deck") {
+    await drawFromDeck(game);
+  } else {
+    flip(game, getIndFromCardSpaceId(drawOrFlipChoice));
+    return;
+  }
+
+  const takeOrDiscardChoice = await setupTakeOrDiscardListeners();
+
+  if (takeOrDiscardChoice === "discards") {
+    await discardDrawnCard(game);
+  } else {
+    await takeDrawnCard(game, getIndFromCardSpaceId(takeOrDiscardChoice));
+  }
+
+  return;
 }
 
-/** Let main player choose to draw a card or flip a card
+/** Set up click listeners to let main player choose to draw or flip a card
  *
- * Put listener on deck, discard pile, and (clickable) card-spaces in player's
- * card area. When clicked, remove listener.
- * If discard pile is clicked:
- * - Have card drawn from discard pile
- * - Let player take the card or discard it
- * If deck if clicked:
- * - Have card drawn from deck
- * - Let player take the card or discard it
- * If card-space is clicked:
- * - Have card flipped
- *
- * Takes: game, a Game instance
+ * Returns: (promise of) string, of id of clicked HTML element
  */
 
-function drawOrFlip(game: Game): Promise<void> {
-  console.log("In main: drawOrFlip");
-
-  // Returns a Promise so that we can "await" it, and thus wait for
-  // main player to take action before continuing game
-  return new Promise(function (resolve) {
-
-    $cardsArea.on("click", ".flippable, #discards, #deck", async function (evt) {
+function setupFlipOrDrawListeners(): Promise<string> {
+  return new Promise((resolve) => {
+    $cardsArea.on("click", ".flippable, #discards, #deck", function (evt) {
       $cardsArea.off();
-      const $clicked = $(evt.target);
-
-      if ($clicked.attr("id") === "discards") {
-        drawFromDiscards(game);
-        await takeOrDiscard(game);
-        resolve();
-      } else if ($clicked.attr("id") === "deck") {
-        await drawFromDeck(game);
-        await takeOrDiscard(game);
-        resolve();
-      } else {
-        const id = $clicked.attr("id") as string;
-        flip(game, getIndFromCardSpaceId(id));
-        resolve();
-      }
+      const id = $(evt.target).attr("id") as string;
+      resolve(id);
     });
   });
 }
 
-/** Let main player choose to take or discard their drawn card
+
+/** Set up listeners to let main player choose to take or discard their drawn card
  *
- * Put listener on discard pile and (clickable) card-spaces in player's card
- * area. When clicked, remove listener.
- * If discard pile is clicked:
- * - Have the player discard the drawn Card instance
- * If card-space is clicked:
- * - Have player discard Card linked to space and take drawn Card in its place
- *
- * Takes: game, a Game instance
+ * Returns: (promise of) string, of id of clicked HTML element
  */
 
-function takeOrDiscard(game: Game): Promise<void> {
+function setupTakeOrDiscardListeners(): Promise<string> {
   console.log("In main: takeOrDiscard");
 
   // Drawn cards can't be returned to deck, so make deck unclickable for now
   $deck.removeClass("clickable");
 
-  // Returns a Promise so that we can "await" it, and thus wait for
-  // main player to take action before continuing game
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
 
-    $cardsArea.on("click", ".clickable", async function (evt) {
+    $cardsArea.on("click", ".clickable", function (evt) {
       $cardsArea.off();
       $deck.addClass("clickable");
-      const $clicked = $(evt.target);
+      const id = $(evt.target).attr("id") as string;
 
-      if ($clicked.attr("id") === "discards") {
-        await discardDrawnCard(game);
-        resolve();
-      } else {
-        const cardSpaceId = $clicked.attr("id") as string;
-        await takeDrawnCard(game, getIndFromCardSpaceId(cardSpaceId));
-        resolve();
-      }
+      resolve(id);
     });
   });
 }
@@ -216,23 +192,24 @@ async function handleComputerTurn(game: Game): Promise<void> {
   showTurnMessage(game);
   await longPause();
 
-  const action = computerDrawOrFlip(game);
-  if (action === "flip") {
+  const drawOrFlipAction = determineDrawOrFlip(game);
+
+  if (drawOrFlipAction === "flip") {
     flip(game, randSelectCardInd(game));
     return;
   }
-  if (action === "drawDeck") {
+  if (drawOrFlipAction === "drawDeck") {
     await drawFromDeck(game);
-    await shortPause();
   }
-  if (action === "drawDiscard") {
+  if (drawOrFlipAction === "drawDiscard") {
     drawFromDiscards(game);
-    await shortPause();
   }
+
+  await shortPause();
 }
 
 // chooses whether to draw or flip
-function computerDrawOrFlip(game: Game): string {
+function determineDrawOrFlip(game: Game): string {
 
   let action: string;
 

@@ -39,12 +39,6 @@ class Card {
     this.flipped = false;
     this.locked = false;
   }
-
-  /** Make a Card flipped*/
-
-  flip(): void {
-    this.flipped = true;
-  }
 }
 
 
