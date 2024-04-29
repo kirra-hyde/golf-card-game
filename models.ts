@@ -1,8 +1,9 @@
 import axios from "axios";
-import { getNextPlayer, randSelectPlayer } from "./utilties.js";
+import { getNextPlayer, randSelectPlayer, checkAllFlipped } from "./utilties.js";
 
 const BASE_URL = "https://deckofcardsapi.com/api/deck";
 const CARDS_PER_HAND = 6;
+const POINTS_PER_GAME = 100;
 
 type tCardData = {
   code: string,
@@ -48,10 +49,15 @@ class Card {
  * - deckID: string that uniquely identifies the card-api deck used in the game
  * - players: array of Player instances. Ex. [{ cards, name, drawnCard }]
  * - currPlayer: Player whose turn it is to play. Ex. { cards, name, drawnCard }
+ * - currDealer: Player who deals this round
  * - topDiscard: Card at top of discard pile. Ex. {value, image, code, flipped }
  * - deckIsEmpty: boolean, false if any cards remain in card-api deck, else true
  * - discardPileHasCards: boolean, true if the card-api discard pile (which
  *      includes all discarded cards EXCEPT topDiscard) has cards, else false
+ * - gameFinished: boolean, true once game is over, else false
+ * - countdown: boolean, true once a countdown to the end of round is initiated
+ * - turnsLeft: number, after countdown, tracks how many turns remain in round
+ * - scores: array of numbers representing the players' current total scores
  */
 
 class Game {
@@ -63,7 +69,9 @@ class Game {
   deckIsEmpty: boolean;
   discardPileHasCards: boolean;
   gameFinished: boolean;
-  roundFinished: boolean;
+  countdown: boolean;
+  turnsLeft: number;
+  scores: number[];
 
   /** Make instance of a Game from a deckID and an array of Players */
 
@@ -72,13 +80,13 @@ class Game {
     this.players = players;
     this.currDealer = randSelectPlayer(players);
     this.currPlayer = getNextPlayer(players, this.currDealer);
-    // this.currDealer = players[0];
-    // this.currPlayer = players[1];
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;
     this.gameFinished = false;
-    this.roundFinished = false;
+    this.countdown = false;
+    this.turnsLeft = players.length;
+    this.scores = [0, 0, 0, 0];
   }
 
   /** Static method to begin a new game
@@ -134,10 +142,21 @@ class Game {
     this.topDiscard = new Card(value, image, code);
   }
 
-  /** Switch which Player's turn it is */
+  /** Switch which Player's turn it is
+   *
+   * - Check if player has all their cards flipped. If so, start round countdown.
+   * - If round countdown is in effect, decrement "roundsLeft" by 1
+   * - Switch currPlayer to next player
+   */
 
   switchTurn(): void {
     console.log("In models: switchTurn");
+    if (checkAllFlipped(this)) {
+      this.countdown = true;
+    }
+    if (this.countdown === true) {
+      this.turnsLeft--;
+    }
     this.currPlayer = getNextPlayer(this.players, this.currPlayer);
   }
 
@@ -174,7 +193,8 @@ class Game {
 
   /** Start a new round
    *
-   * - Set roundFinished to false
+   * - Set roundsLeft to 4
+   * - Set countdown to false
    * - Set currDealer to the next Player after old currDealer
    * - Set currPlayer to the next Player after new currDealer
    * - Add all cards to main deck and shuffle it
@@ -184,7 +204,8 @@ class Game {
     console.log("In models: switchRound");
     this.currDealer = getNextPlayer(this.players, this.currDealer);
     this.currPlayer = getNextPlayer(this.players, this.currDealer);
-    this.roundFinished = false;
+    this.turnsLeft = this.players.length;
+    this.countdown = false;
 
     await axios.get(`${BASE_URL}/${this.deckID}/shuffle`);
   }
@@ -209,6 +230,16 @@ class Game {
       cards[cardInd - 3].locked = true;
       return [cardInd, cardInd - 3];
     }
+  }
+
+  /** Returns boolean of whether game is over.  If so, make gameFinished property true */
+
+  checkIfOver(): boolean {
+    const isitOver = this.scores.some(score => score >= POINTS_PER_GAME);
+    if (isitOver) {
+      this.gameFinished = true;
+    }
+    return isitOver;
   }
 }
 

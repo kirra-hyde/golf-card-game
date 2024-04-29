@@ -1,3 +1,4 @@
+import { i } from "vitest/dist/reporters-P7C2ytIv.js";
 import { Player, Game } from "./models.js";
 
 /** Randomly choose Player from array of Players
@@ -27,6 +28,31 @@ function getNextPlayer(players: Player[], player: Player): Player {
     return players[0];
   }
 }
+
+/** Check if current player has flipped all cards */
+
+function checkAllFlipped(game: Game): boolean {
+  const cards = game.currPlayer.cards;
+  for (let card of cards) {
+    if (!card.flipped) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function getWinnerInd(game: Game): number {
+  let lowScore = 100000;
+  let lowInd = -1;
+  for (let i = 0; i < game.scores.length; i++) {
+    if (game.scores[i] < lowScore) {
+      lowScore = game.scores[i];
+      lowInd = i;
+    }
+  }
+  return lowInd;
+}
+
 
 /** Get index of Card from id of HTML element affiliated with the Card
  *
@@ -276,4 +302,5 @@ export {
   getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard, getPlayerIndex,
   getDrawnCardSpaceId, sortVals, numberifyVal, getLowColPoints, getUnflippedInds,
   getBestInds, getBadVals, getBestValToSwap, getIndInPinch, matchWithDrawnCard,
+  checkAllFlipped, getWinnerInd,
 };

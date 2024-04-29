@@ -1,14 +1,21 @@
 import { Game, Card, Player } from "./models.js";
-import { getCardSpaceId, getDrawnCardSpaceId } from "./utilties.js";
+import { getCardSpaceId, getDrawnCardSpaceId, getWinnerInd } from "./utilties.js";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
+const $endRoundScreen = $("#end-round-screen");
+const $endScreen = $("#end-screen");
 
 const $nameField = $("#name-field") as JQuery<HTMLInputElement>;
 const $nameSpace = $("#p1-name");
 const $discards = $("#discards");
 const $messages = $("#messages");
 const $deck = $("#deck");
+const $roundScores = $("#round-scores");
+const $totalScores = $("#total-scores");
+const $endMessage = $("#end-message");
+const $lastRoundScores = $("#last-round-scores");
+const $finalScores = $("#final-scores");
 
 
 /** Show the card area where the game is played
@@ -86,7 +93,6 @@ function clearDeckIfEmpty(game: Game): void {
   }
 }
 
-
 /** Remove "clickable" class from a column of flipped cards
  *
  * Takes:
@@ -100,6 +106,50 @@ function makeUnclickable(game: Game, inds: number[], player: Player = game.currP
   const id2 = getCardSpaceId(inds[1], game, player);
   $(`#${id1}`).removeClass("clickable");
   $(`#${id2}`).removeClass("clickable");
+}
+
+/** Show round scores and cumulative scores, for end of round */
+
+function showScores(game: Game, roundScores: number[]) {
+
+  const roundMessage = makeScoreMessage(roundScores, game);
+  $roundScores.text(`Round scores:  ${roundMessage}`);
+
+  const totalMessage = makeScoreMessage(game.scores, game);
+  $totalScores.text(`Total scores:  ${totalMessage}`);
+
+  $endRoundScreen.show();
+}
+
+/** Show end of game message and scores */
+
+function showEndScreen(game: Game, roundScores: number[]) {
+
+  const roundMessage = makeScoreMessage(roundScores, game);
+  $lastRoundScores.text(`Round scores:  ${roundMessage}`);
+
+  let endMessage: string;
+  const winnerInd = getWinnerInd(game);
+  if (winnerInd === 0) {
+    endMessage = "Congratulations, you win!!";
+  } else {
+    endMessage = `${game.players[winnerInd].name} wins`;
+  }
+  $endMessage.text(endMessage);
+
+  const totalMessage = makeScoreMessage(game.scores, game);
+  $finalScores.text(totalMessage);
+
+  $endScreen.show();
+}
+
+/** Make and return a message with scores of all players */
+
+function makeScoreMessage(scores: number[], game: Game): string {
+  const [tot1, tot2, tot3, tot4] = scores;
+  const name = game.players[0].name;
+  const msg = `${name}: ${tot1}, Billy: ${tot2}, Bobby: ${tot3}, Buddy: ${tot4}`;
+  return msg;
 }
 
 /** Set UI for a new round
@@ -122,6 +172,8 @@ function resetCardArea() {
   $deck.attr("alt", "main deck of cards");
   $discards.attr("src", "./images/discards_placeholder.png");
   $discards.attr("alt", "discards go here");
+
+  $endRoundScreen.hide();
 }
 
 
@@ -191,7 +243,7 @@ function shortPause() {
   });
 }
 
-/** Pause game for 3 seconds, simulates computer player thinking */
+/** Pause game for 2 seconds, simulates computer player thinking */
 
 function longPause() {
   return new Promise((resolve) => {
@@ -204,4 +256,5 @@ export {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
   updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
+  showScores, showEndScreen,
 };

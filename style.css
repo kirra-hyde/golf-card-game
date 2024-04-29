@@ -61,7 +61,8 @@ body {
   text-align: center;
 }
 
-#end-screen {
+#end-screen,
+#end-round-screen {
   position: absolute;
   width: 100%;
   top: 310px;

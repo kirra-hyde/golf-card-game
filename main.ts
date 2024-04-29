@@ -9,6 +9,7 @@ import {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
   updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
+  showScores, showEndScreen,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -18,6 +19,7 @@ const $mainPlayerCardsArea = $("#p1");
 // warning that '$startForm.on("submit", handleGame)' was deprecated.
 const startForm = document.getElementById("start-form") as HTMLFormElement;
 const $deck = $("#deck");
+const $restartButton = $("#restart");
 
 /** Primary game handler */
 
@@ -31,7 +33,7 @@ async function handleGame(evt: Event): Promise<void> {
   while (currentGame.gameFinished === false) {
     await startRound(currentGame);
 
-    for (let i = 0; i < 12; i++) {
+    while (currentGame.turnsLeft > 0) {
 
       // The player at index 0 of "game.players" is the main player.
       if (currentGame.currPlayer === currentGame.players[0]) {
@@ -40,16 +42,13 @@ async function handleGame(evt: Event): Promise<void> {
         await handleComputerTurn(currentGame);
       }
       currentGame.switchTurn();
-      // Function to check if round is finished, and if so, make roundFinished true
-      currentGame.roundFinished = true;
     }
-    // Some message with current scores
-    await currentGame.switchRound();
-    resetCardArea();
-    // Function to check if game is finished, and if so, make gameFinished true
-    currentGame.gameFinished = true;
+    await endRound(currentGame);
   }
   console.log("FINISHED!!");
+  $restartButton.on("click", () => {
+    location.reload();
+  });
 };
 
 // Launches the game
@@ -76,6 +75,42 @@ async function startRound(game: Game) {
   await setupFlipListeners(game);
 }
 
+/** Have cards shown and score calculated and shown at end of round */
+
+async function endRound(game: Game) {
+  await shortPause();
+  const roundScores: number[] = [];
+  for (let i = 0; i < game.players.length; i++) {
+    const player = game.players[i];
+    let score = 0;
+    for (let j = 0; j < player.cards.length; j++) {
+      const card = player.cards[j];
+      if (!card.flipped) {
+        showCard(card, getCardSpaceId(j, game, player));
+      }
+      if (j < 3 && card.value !== player.cards[j + 3].value) {
+        score += numberifyVal(card.value);
+      }
+      if (j >= 3 && card.value !== player.cards[j - 3].value) {
+        score += numberifyVal(card.value);
+      }
+    }
+    roundScores.push(score);
+  }
+  for (let i = 0; i < roundScores.length; i++) {
+    game.scores[i] += roundScores[i];
+  }
+
+  await shortPause();
+  if (game.checkIfOver()) {
+    showEndScreen(game, roundScores);
+    return;
+  }
+
+  showScores(game, roundScores);
+  await game.switchRound();
+  await setupNewRoundListener();
+}
 
 /*******************************************************************************
  * Handlers for main player actions
@@ -102,6 +137,21 @@ function setupFlipListeners(game: Game): Promise<void> {
       const $cardSpace = $(evt.target);
       const id = $cardSpace.attr("id") as string;
       flip(game, getIndFromCardSpaceId(id), game.players[0]);
+      resolve();
+    });
+  });
+}
+
+/** Let main player click to start new round */
+
+function setupNewRoundListener(): Promise<void> {
+  console.log("In main: setupNewRoundListner");
+
+  return new Promise((resolve) => {
+
+    $cardsArea.on("click", function () {
+      $cardsArea.off();
+      resetCardArea();
       resolve();
     });
   });
@@ -182,6 +232,8 @@ function setupTakeOrDiscardListeners(): Promise<string> {
 /*******************************************************************************
  * Handlers for computer player actions
 */
+
+// TODO:: IF you take from discard pile, you can't discard it.  And, when locking a column, choose which would be the lowest
 
 /** Have a message that it's a computer player's turn shown, and start the turn
  *
