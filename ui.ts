@@ -116,8 +116,7 @@ function resetCardArea() {
   $cards.attr("alt", "back of card");
 
   const $mainPlayerCards = $("#p1 img");
-  $mainPlayerCards.addClass("clickable");
-  $mainPlayerCards.addClass("flippable");
+  $mainPlayerCards.addClass("clickable flippable");
 
   $deck.attr("src", "./images/deck.png");
   $deck.attr("alt", "main deck of cards");
@@ -196,7 +195,7 @@ function shortPause() {
 
 function longPause() {
   return new Promise((resolve) => {
-    setTimeout(resolve, 3000);
+    setTimeout(resolve, 2000);
   });
 }
 

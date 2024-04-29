@@ -70,10 +70,10 @@ class Game {
   constructor(deckID: string, players: Player[]) {
     this.deckID = deckID;
     this.players = players;
-    // this.currDealer = randSelectPlayer(players);
-    // this.currPlayer = getNextPlayer(players, this.currDealer);
-    this.currDealer = players[3];
+    this.currDealer = randSelectPlayer(players);
     this.currPlayer = getNextPlayer(players, this.currDealer);
+    // this.currDealer = players[0];
+    // this.currPlayer = players[1];
     this.topDiscard = null;
     this.deckIsEmpty = false;
     this.discardPileHasCards = false;
@@ -267,7 +267,7 @@ class Player {
     // If no cards remain, have discard pile shuffled into deck, and try again
     if (!success) {
       await game.reshuffle();
-      this.drawFromDeck(game);
+      await this.drawFromDeck(game);
     } else {
       const cardData = resp.data.cards[0] as tCardData;
       const { value, image, code } = cardData;
@@ -359,4 +359,4 @@ class Player {
   }
 }
 
-export { Game, Player, Card, BASE_URL };
+export { Game, Player, Card };
