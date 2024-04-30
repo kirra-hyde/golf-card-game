@@ -233,8 +233,6 @@ function setupTakeOrDiscardListeners(): Promise<string> {
  * Handlers for computer player actions
 */
 
-// TODO:: IF you take from discard pile, you can't discard it.  And, when locking a column, choose which would be the lowest
-
 /** Have a message that it's a computer player's turn shown, and start the turn
  *
  * Takes: game, a Game instance

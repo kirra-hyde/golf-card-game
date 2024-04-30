@@ -1,6 +1,11 @@
 import { Game, Card, Player } from "./models.js";
 import { getCardSpaceId, getDrawnCardSpaceId, getWinnerInd } from "./utilties.js";
 import drawnCardPlaceholder from "./images/drawn_placeholder.png";
+import discardsPlaceholder from "./images/discards_placeholder.png";
+import deck from "./images/deck.png";
+import discardPile from "./images/discards.png";
+import emptyDeck from "./images/empty_deck.png";
+import cardBack from "./images/back.png";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
@@ -38,9 +43,9 @@ function showCardsArea(): string {
 /** Update images when discards are shuffled into the main deck */
 
 function updatePicsOnReshuffle(): void {
-  $discards.attr("src", "./images/discards_placeholder.png");
+  $discards.attr("src", discardsPlaceholder);
   $discards.attr("alt", "discards go here");
-  $deck.attr("src", "./images/deck.png");
+  $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
 }
 
@@ -65,10 +70,10 @@ function showCard(card: Card, cardSpaceID: string): void {
 
 function clearTopDiscardSpace(game: Game): void {
   if (game.discardPileHasCards) {
-    $discards.attr("src", "./images/discards.png");
+    $discards.attr("src", discardPile);
     $discards.attr("alt", "discards pile");
   } else {
-    $discards.attr("src", "./images/discards_placeholder.png");
+    $discards.attr("src", discardsPlaceholder);
     $discards.attr("alt", "discards go here");
   }
 }
@@ -89,7 +94,7 @@ function clearDrawnCardSpace(game: Game): void {
 
 function clearDeckIfEmpty(game: Game): void {
   if (game.deckIsEmpty) {
-    $deck.attr("src", "./images/empty_deck.png");
+    $deck.attr("src", emptyDeck);
     $deck.attr("alt", "No more cards. Click me to get discard pile and shuffle.");
   }
 }
@@ -163,15 +168,15 @@ function resetCardArea() {
   console.log("in resetCardArea");
 
   const $cards = $(".cards");
-  $cards.attr("src", "./images/back.png");
+  $cards.attr("src", cardBack);
   $cards.attr("alt", "back of card");
 
   const $mainPlayerCards = $("#p1 img");
   $mainPlayerCards.addClass("clickable flippable");
 
-  $deck.attr("src", "./images/deck.png");
+  $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
-  $discards.attr("src", "./images/discards_placeholder.png");
+  $discards.attr("src", discardsPlaceholder);
   $discards.attr("alt", "discards go here");
 
   $endRoundScreen.hide();
