@@ -3,6 +3,7 @@
         "target": "ES2021",
         "strict": true,
         "moduleResolution": "Node",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "types": ["vite/client", "jquery"]
     },
 }

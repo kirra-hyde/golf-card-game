@@ -1,5 +1,6 @@
 import { Game, Card, Player } from "./models.js";
 import { getCardSpaceId, getDrawnCardSpaceId, getWinnerInd } from "./utilties.js";
+import drawnCardPlaceholder from "./images/drawn_placeholder.png";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
@@ -77,7 +78,7 @@ function clearTopDiscardSpace(game: Game): void {
 function clearDrawnCardSpace(game: Game): void {
   const drawnCardSpaceId = getDrawnCardSpaceId(game);
   const $drawnCardSpace = $(`#${drawnCardSpaceId}`);
-  $drawnCardSpace.attr("src", "./images/drawn_placeholder.png");
+  $drawnCardSpace.attr("src", drawnCardPlaceholder);
   $drawnCardSpace.attr("alt", "drawn card spot");
 }
 
