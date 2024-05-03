@@ -91,9 +91,9 @@ class Game {
 
   /** Static method to begin a new game
    *
-   * - Fetches a deck id from card API
-   * - Has 4 Players made, optionally using 'playerName' for non-computer Player
-   * - Has a Game instance made from deck id and Players
+   * - Fetch a deck id from card API
+   * - Make 4 Players, optionally using 'playerName' for non-computer Player
+   * - Makes a Game instance from deck id and Players
    *
    * Takes (optionally): playerName, string representing the main player's name
    * Returns: (promise of) Game instance
@@ -111,12 +111,12 @@ class Game {
     return new Game(deckID, players);
   }
 
-  /** Handles the initial dealing of cards
+  /** Handle the initial dealing of cards
    *
-   * - Fetches card data from card API for 6 cards per player plus 1 for discard
-   * - Has Cards made with card data
-   * - Adds all Cards but 1 to Players' cards array
-   * - Adds remaining Card to top of discard pile
+   * - Fetch card data from card API for 6 cards per player plus 1 for discard
+   * - Make Cards with card data
+   * - Add all Cards but 1 to Players' cards array
+   * - Add remaining Card to top of discard pile
    */
 
   async dealGame(): Promise<void> {
@@ -210,7 +210,7 @@ class Game {
     await axios.get(`${BASE_URL}/${this.deckID}/shuffle`);
   }
 
-  /** Locks Cards if both Cards in a column have been flipped
+  /** Lock Cards if both Cards in a column have been flipped
    *
    * Takes:
    * - cardInd: Number of the index of a Card that was just flipped
@@ -232,7 +232,8 @@ class Game {
     }
   }
 
-  /** Returns boolean of whether game is over.  If so, make gameFinished property true */
+  /** Return boolean representing whether game is over.
+   *  If game is over, make gameFinished property true */
 
   checkIfOver(): boolean {
     const isitOver = this.scores.some(score => score >= POINTS_PER_GAME);
@@ -279,8 +280,8 @@ class Player {
   /** Draw a card from the deck
    *
    * - Fetch data on 1 card
-   * - Have Card instance made from data
-   * - Make Card Player's drawnCard
+   * - Make Card instance with data
+   * - Make the Card the Player's drawnCard
    * - Set Game's deckIsEmpty using data from API call
    * - If no cards remain in deck, have discard pile shuffled into deck first
    *
@@ -390,4 +391,4 @@ class Player {
   }
 }
 
-export { Game, Player, Card };
+export { Game, Player, Card, BASE_URL };

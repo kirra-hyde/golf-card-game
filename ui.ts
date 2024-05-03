@@ -1,5 +1,6 @@
 import { Game, Card, Player } from "./models.js";
 import { getCardSpaceId, getDrawnCardSpaceId, getWinnerInd } from "./utilties.js";
+
 import drawnCardPlaceholder from "./images/drawn_placeholder.png";
 import discardsPlaceholder from "./images/discards_placeholder.png";
 import deck from "./images/deck.png";
@@ -107,16 +108,22 @@ function clearDeckIfEmpty(game: Game): void {
  * - player: a Player instance, the owner of the cards (defaults to currPlayer)
  */
 
-function makeUnclickable(game: Game, inds: number[], player: Player = game.currPlayer): void {
+function makeUnclickable(
+         game: Game, inds: number[], player: Player = game.currPlayer): void {
   const id1 = getCardSpaceId(inds[0], game, player);
   const id2 = getCardSpaceId(inds[1], game, player);
   $(`#${id1}`).removeClass("clickable");
   $(`#${id2}`).removeClass("clickable");
 }
 
-/** Show round scores and cumulative scores, for end of round */
+/** Show round scores and cumulative scores, for end of round
+ *
+ * Takes:
+ *   - roundScores: an array of numbers of the player's scores for the round
+ *   - game: a Game instance
+ */
 
-function showScores(game: Game, roundScores: number[]) {
+function showScores(game: Game, roundScores: number[]): void {
 
   const roundMessage = makeScoreMessage(roundScores, game);
   $roundScores.text(`Round scores:  ${roundMessage}`);
@@ -127,9 +134,14 @@ function showScores(game: Game, roundScores: number[]) {
   $endRoundScreen.show();
 }
 
-/** Show end of game message and scores */
+/** Show end of game message, scores for round, and final scores
+ *
+ * Takes:
+ *   - roundScores: an array of numbers of the player's scores for the round
+ *   - game: a Game instance
+ */
 
-function showEndScreen(game: Game, roundScores: number[]) {
+function showEndScreen(game: Game, roundScores: number[]): void {
 
   const roundMessage = makeScoreMessage(roundScores, game);
   $lastRoundScores.text(`Round scores:  ${roundMessage}`);
@@ -149,7 +161,13 @@ function showEndScreen(game: Game, roundScores: number[]) {
   $endScreen.show();
 }
 
-/** Make and return a message with scores of all players */
+/** Make a message about Players' scores
+ *
+ * Takes:
+ *   - scores: an array of numbers representing the player's scores
+ *   - game: a Game instance
+ * Returns: a string of a message with the player's scores
+ */
 
 function makeScoreMessage(scores: number[], game: Game): string {
   const [tot1, tot2, tot3, tot4] = scores;
@@ -160,11 +178,11 @@ function makeScoreMessage(scores: number[], game: Game): string {
 
 /** Set UI for a new round
  *
- * - Show card backs for cards in players hand, full deck, and empty discard pile
- * - Give HTML elements for main player's cards classes "clickable" and "flippable"
+ * - Show full deck, empty discard pile, and back of cards for cards in hands
+ * - Give HTML elements for main player cards classes "clickable" and "flippable"
  */
 
-function resetCardArea() {
+function resetCardArea(): void {
   console.log("in resetCardArea");
 
   const $cards = $(".cards");
@@ -243,7 +261,7 @@ function showTurnMessage(game: Game): void {
 
 /** Pause game for .8 seconds, for image changes to not feel too rushed */
 
-function shortPause() {
+function shortPause(): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, 800);
   });
@@ -251,7 +269,7 @@ function shortPause() {
 
 /** Pause game for 2 seconds, simulates computer player thinking */
 
-function longPause() {
+function longPause(): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, 2000);
   });
