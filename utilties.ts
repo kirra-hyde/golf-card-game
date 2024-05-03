@@ -98,7 +98,14 @@ function getDrawnCardSpaceId(game: Game): string {
   return `drawn-card-${getPlayerIndex(game) + 1}`;
 }
 
-// Get player's index
+/** Get the index of a Player in a Game's players array
+ *
+ * Takes:
+ * - game: a Game instance
+ * - player: a Player instance (defaults to current player)
+ * Returns: number, representing index of player
+ */
+
 function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
   return game.players.indexOf(player);
 }

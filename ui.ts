@@ -1,5 +1,5 @@
 import { Game, Card, Player } from "./models.js";
-import { getCardSpaceId, getDrawnCardSpaceId, getWinnerInd } from "./utilties.js";
+import { getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd } from "./utilties.js";
 
 import drawnCardPlaceholder from "./images/drawn_placeholder.png";
 import discardsPlaceholder from "./images/discards_placeholder.png";
@@ -200,7 +200,25 @@ function resetCardArea(): void {
   $endRoundScreen.hide();
 }
 
+/** Make current player's name bold
+ *
+ * Takes: game, a Game instance
+ */
 
+function boldenName(game: Game) {
+  const $nameArea = $(`#p${getPlayerIndex(game) + 1}-name`);
+  $nameArea.addClass("bold");
+}
+
+/** Make current player's name not bold
+ *
+ * Takes: game, a Game instance
+ */
+
+function unboldenName(game: Game) {
+  const $nameArea = $(`#p${getPlayerIndex(game) + 1}-name`);
+  $nameArea.removeClass("bold");
+}
 
 /*******************************************************************************
  * Messages
@@ -259,26 +277,33 @@ function showTurnMessage(game: Game): void {
  * Pauses
 */
 
-/** Pause game for .8 seconds, for image changes to not feel too rushed */
+/** Pause game for 1 seconds, for image changes to not feel too rushed */
 
 function shortPause(): Promise<void> {
   return new Promise((resolve) => {
-    setTimeout(resolve, 800);
+    setTimeout(resolve, 1000);
   });
 }
 
-/** Pause game for 2 seconds, simulates computer player thinking */
+/** Pause game for 1.8 seconds, simulates computer player thinking */
 
 function longPause(): Promise<void> {
   return new Promise((resolve) => {
-    setTimeout(resolve, 2000);
+    setTimeout(resolve, 1800);
   });
 }
 
+/** Pause game for a beat, for visuals changing in right order */
+
+function tinyPause(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 50);
+  });
+}
 
 export {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
   updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
-  showScores, showEndScreen,
+  showScores, showEndScreen, boldenName, unboldenName, tinyPause,
 };

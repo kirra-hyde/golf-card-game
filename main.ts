@@ -9,7 +9,7 @@ import {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
   updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
-  showScores, showEndScreen,
+  showScores, showEndScreen, boldenName, unboldenName, tinyPause
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -42,6 +42,8 @@ async function handleGame(evt: Event): Promise<void> {
       } else {
         await handleComputerTurn(currentGame);
       }
+      await tinyPause();
+      unboldenName(currentGame);
       currentGame.switchTurn();
     }
     await endRound(currentGame);
@@ -178,6 +180,7 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
   console.log("In main: handleMainPlayerTurn");
   await shortPause();
   showTurnMessage(game);
+  boldenName(game);
 
   const drawOrFlipChoice = await setupFlipOrDrawListeners();
 
@@ -197,8 +200,6 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
   } else {
     await takeDrawnCard(game, getIndFromCardSpaceId(takeOrDiscardChoice));
   }
-
-  return;
 }
 
 /** Set up click listeners to let main player choose to draw or flip a card
@@ -254,6 +255,7 @@ async function handleComputerTurn(game: Game): Promise<void> {
   console.log("In main: handleComputerTurn");
   await shortPause();
   showTurnMessage(game);
+  boldenName(game);
   await longPause();
 
   const drawOrFlipAction = determineDrawOrFlip(game);
@@ -269,7 +271,7 @@ async function handleComputerTurn(game: Game): Promise<void> {
     drawFromDiscards(game);
   }
 
-  await shortPause();
+  await longPause();
   const takeOrDiscardAction = determineTakeOrDiscard(game);
 
   if (takeOrDiscardAction < 0) {
@@ -277,7 +279,6 @@ async function handleComputerTurn(game: Game): Promise<void> {
   } else {
     await takeDrawnCard(game, takeOrDiscardAction);
   }
-  return;
 }
 
 /** Determine whether a computer player should choose to flip a card,
