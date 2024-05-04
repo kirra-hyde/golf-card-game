@@ -186,6 +186,9 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
 
   if (drawOrFlipChoice === "discards") {
     drawFromDiscards(game);
+    const id = await setupTakeListeners();
+    await takeDrawnCard(game, getIndFromCardSpaceId(id));
+    return;
   } else if (drawOrFlipChoice === "deck") {
     await drawFromDeck(game);
   } else {
@@ -224,7 +227,7 @@ function setupFlipOrDrawListeners(): Promise<string> {
  */
 
 function setupTakeOrDiscardListeners(): Promise<string> {
-  console.log("In main: takeOrDiscard");
+  console.log("In main: setupTakeOrDiscardListeners");
 
   // Drawn cards can't be returned to deck, so make deck unclickable for now
   $deck.removeClass("clickable");
@@ -234,6 +237,24 @@ function setupTakeOrDiscardListeners(): Promise<string> {
     $cardsArea.on("click", ".clickable", function (evt) {
       $cardsArea.off();
       $deck.addClass("clickable");
+      const id = $(evt.target).attr("id") as string;
+
+      resolve(id);
+    });
+  });
+}
+
+/** Set up listeners for main player to choose where to take drawn card
+ *
+ * Returns: (promise of) string, of id of clicked HTML element
+ */
+
+function setupTakeListeners(): Promise<string> {
+  console.log("In main: setupTakeListeners");
+
+  return new Promise((resolve) => {
+
+    $mainPlayerCardsArea.on("click", ".clickable", function (evt) {
       const id = $(evt.target).attr("id") as string;
 
       resolve(id);
@@ -559,7 +580,7 @@ async function takeDrawnCard(game: Game, cardInd: number): Promise<void> {
   showCard(card, cardSpaceId);
 
   if (game.currPlayer === game.players[0]) {
-    $(`#${cardSpaceId}`).removeClass("flipped");
+    $(`#${cardSpaceId}`).removeClass("flippable");
     if (inds) {
       makeUnclickable(game, inds);
     }
