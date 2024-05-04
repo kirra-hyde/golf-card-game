@@ -1,9 +1,9 @@
 import { Game, Player, Card } from "./models.js";
 import {
   randSelectCardInd, getIndFromCardSpaceId, getCardSpaceId, getDrawnCardSpaceId,
-  chanceTrue, matchWithDiscard, getNextPlayer, getPlayerIndex, unflippedCol,
+  chanceTrue, checkForMatch, getNextPlayer, getPlayerIndex, unflippedCol,
   sortVals, numberifyVal, getLowColPoints, getUnflippedInds, getBestInds,
-  getBadVals, getBestValToSwap, getIndInPinch, matchWithDrawnCard,
+  getBadVals, getBestToSwap, getIndInPinch,
 } from "./utilties.js";
 import {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
@@ -264,11 +264,15 @@ async function handleComputerTurn(game: Game): Promise<void> {
     flip(game, randSelectCardInd(game));
     return;
   }
+  if (drawOrFlipAction[0] === "drawDiscard") {
+    drawFromDiscards(game);
+    const indToTakeCard = drawOrFlipAction[1] as number;
+    await longPause();
+    await takeDrawnCard(game, indToTakeCard);
+    return;
+  }
   if (drawOrFlipAction === "drawDeck") {
     await drawFromDeck(game);
-  }
-  if (drawOrFlipAction === "drawDiscard") {
-    drawFromDiscards(game);
   }
 
   await longPause();
@@ -281,46 +285,70 @@ async function handleComputerTurn(game: Game): Promise<void> {
   }
 }
 
-/** Determine whether a computer player should choose to flip a card,
- *  take the card from the top of the discard pile, or draw from the deck
+/** Determine whether a computer player should choose to flip a card, draw from
+ *  the deck, or draw from the discard pile. If choice is discard pile,
+ *  determine where to take discarded card.
  *
  * Takes: game, a Game instance
- * Returns: string, representing the player's choice
+ * Returns:
+ * - string, representing the player's choice to flip or draw from deck. OR
+ * - array of "drawDiscard"--the players choice--and a number--which index
+ *   to take the discarded card at
  */
 
-function determineDrawOrFlip(game: Game): "flip" | "drawDeck" | "drawDiscard" {
+function determineDrawOrFlip(game: Game):
+  "flip" | "drawDeck" | ["drawDiscard", number] {
   console.log("In main: determineDrawOrFlip");
 
+  const [isMatch, matchInd] = checkForMatch(game, game.topDiscard as Card);
   // Take the top discard if it matches a flipped card that isn't locked
-  if (matchWithDiscard(game) && chanceTrue(.98)) {
-    return "drawDiscard";
+  if (isMatch && chanceTrue(.98)) {
+    return ["drawDiscard", matchInd];
   }
 
-  const value = game.topDiscard?.value;
+  const topDiscard = game.topDiscard as Card;
 
-  // Likelihood of taking top discard determined by how good it is.
-  if (value === "ACE" || value === "KING") {
-    return "drawDiscard";
+  // If you can lock in a column with a low value, do it
+  const [lowColPoints, lowColInd] = getLowColPoints(game, topDiscard);
+  if (
+    lowColPoints < 4 ||
+    (lowColPoints === 4 && chanceTrue(.65)) ||
+    (lowColPoints === 5 && chanceTrue(.3))
+  ) {
+    return ["drawDiscard", lowColInd];
   }
-  if (value === "2" && chanceTrue(.95)) {
-    return "drawDiscard";
-  }
-  if (value === "3" && chanceTrue(.85)) {
-    return "drawDiscard";
-  }
-  if (value === "4" && chanceTrue(.75)) {
-    return "drawDiscard";
-  }
-  if (value === "5" && chanceTrue(.65)) {
-    return "drawDiscard";
-  }
-  if (value === "6" && chanceTrue(.30)) {
-    return "drawDiscard";
+
+  const value = numberifyVal(game.topDiscard?.value as string);
+
+  //If card at top of discard pile is decent, and there's a good place to take
+  // it at, take it.
+  if (
+    value <= 1 ||
+    (value === 2 && chanceTrue(.95)) ||
+    (value === 3 && chanceTrue(.85)) ||
+    (value === 4 && chanceTrue(.75)) ||
+    (value === 5 && chanceTrue(.65)) ||
+    (value === 6 && chanceTrue(.3))
+  ) {
+
+    // An unflipped column is the best place to take a card
+    const unflippedColInds = getBestInds(getUnflippedInds(game));
+    if (unflippedColInds.length >= 1) {
+      return ["drawDiscard", unflippedColInds[0]];
+    }
+
+    // The value and index of the highest flipped swappable card that the next
+    // player doesn't want, if any.
+    const worstValWithInd = getBestToSwap(game);
+    // If card in discard pile is an improvement on worst card, take it
+    if (worstValWithInd && (worstValWithInd[0] > value)) {
+      return ["drawDiscard", worstValWithInd[1]];
+    }
   }
 
   // Don't leave a card the next player needs in the discard pile
   const nextPlayer = getNextPlayer(game.players, game.currPlayer);
-  if (matchWithDiscard(game, nextPlayer) && chanceTrue(.9)) {
+  if (checkForMatch(game, topDiscard, nextPlayer)[0] && chanceTrue(.9)) {
     return "drawDeck";
   }
 
@@ -337,7 +365,7 @@ function determineDrawOrFlip(game: Game): "flip" | "drawDeck" | "drawDiscard" {
   }
 }
 
-/** Determine whether a computer player should take or discard their drawn card
+/** Determine whether computer player should take or discard card drawn from deck
  *
  * Takes: game, a game instance
  * Returns: number, representing index to take the card at, or -1 to discard it
@@ -346,23 +374,26 @@ function determineDrawOrFlip(game: Game): "flip" | "drawDeck" | "drawDiscard" {
 function determineTakeOrDiscard(game: Game): number {
   console.log("In main: determineTakeOrDiscard");
 
+  const drawnCard = game.currPlayer.drawnCard as Card;
+
   // Always try to get cards of same value in the same column
-  const [isMatch, matchInd] = matchWithDrawnCard(game);
+  const [isMatch, matchInd] = checkForMatch(game, drawnCard);
   if (isMatch && chanceTrue(.98)) {
     return matchInd;
   }
 
   // If you can lock in a column with a low value, do it
-  const [lowColPoints, lowColInd] = getLowColPoints(game);
-  if (lowColPoints < 4) {
+  const [lowColPoints, lowColInd] = getLowColPoints(game, drawnCard);
+  if (
+    lowColPoints < 4 ||
+    (lowColPoints === 4 && chanceTrue(.65)) ||
+    (lowColPoints === 5 && chanceTrue(.3))
+  ) {
     return lowColInd;
   }
-  if (lowColPoints === 4 && chanceTrue(.6)) {
-    return lowColInd;
-  }
-  if (lowColPoints === 5 && chanceTrue(.3)) {
-    return lowColInd;
-  }
+
+  // The value of the current player's drawn card
+  const drawnVal = numberifyVal(game.currPlayer.drawnCard?.value as string);
 
   const unflippedColInds = getBestInds(getUnflippedInds(game));
 
@@ -372,22 +403,19 @@ function determineTakeOrDiscard(game: Game): number {
   // If there's a column without flipped cards, take half-decent cards into it
   if (unflippedColInds.length >= 1) {
     const ind = unflippedColInds[0];
-    const val = game.currPlayer.drawnCard?.value as string;
-    if (val === "KING" || val === "ACE" || val === "2") {
-      return ind;
-    } else if (val === "3" && chanceTrue(.95)) {
-      return ind;
-    } else if (val === "4" && chanceTrue(.9)) {
-      return ind;
-    } else if (val === "5" && chanceTrue(.85)) {
-      return ind;
-    } else if (val === "6" && chanceTrue(.65)) {
-      return ind;
-    } else if (chanceTrue(.55)) {
+    if (
+      drawnVal <= 2 ||
+      (drawnVal === 3 && chanceTrue(.95)) ||
+      (drawnVal === 4 && chanceTrue(.9)) ||
+      (drawnVal === 5 && chanceTrue(.85)) ||
+      (drawnVal === 6 && chanceTrue(.65)) ||
+      chanceTrue(.55)
+    ) {
       return ind;
     }
+
     // Even bad cards should be taken if you don't want the next player to get it
-    if (numberifyVal(val) in badVals && chanceTrue(.9)) {
+    if (drawnVal in badVals && chanceTrue(.9)) {
       return ind;
     }
   }
@@ -396,11 +424,8 @@ function determineTakeOrDiscard(game: Game): number {
   // in order of highest points to lowest
   const sortedValsAndInds = sortVals(game);
 
-  // The value of the current player's drawn card
-  const drawnVal = numberifyVal(game.currPlayer.drawnCard?.value as string);
-
   // Value and index of the worst swappable card that the next player doesn't want
-  const worstValWithInd = getBestValToSwap(sortedValsAndInds, badVals);
+  const worstValWithInd = getBestToSwap(game, sortedValsAndInds);
 
   // For rare case where next player wants all swappable cards
   if (!worstValWithInd) {
@@ -415,13 +440,11 @@ function determineTakeOrDiscard(game: Game): number {
 
   // If drawn card is lower than best card to swap, swap them
   if (drawnVal < worstVal) {
-    if (drawnVal <= 4) {
-      return worstInd;
-    }
-    if (drawnVal <= 6 && chanceTrue(.95)) {
-      return worstInd;
-    }
-    if (drawnVal >= 7 && chanceTrue(.9)) {
+    if (
+      drawnVal <= 4 ||
+      (drawnVal <= 6 && chanceTrue(.95)) ||
+      (drawnVal >= 7 && chanceTrue(.9))
+    ) {
       return worstInd;
     }
   }

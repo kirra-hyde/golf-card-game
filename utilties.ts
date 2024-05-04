@@ -1,4 +1,4 @@
-import { Player, Game } from "./models.js";
+import { Player, Game, Card } from "./models.js";
 
 /** Randomly choose Player from array of Players
  *
@@ -83,7 +83,7 @@ function getIndFromCardSpaceId(id: string): number {
  */
 
 function getCardSpaceId(
-       cardInd: number, game: Game, player: Player = game.currPlayer): string {
+  cardInd: number, game: Game, player: Player = game.currPlayer): string {
   const playerInd = getPlayerIndex(game, player);
   return `p${playerInd + 1}-${cardInd}`;
 }
@@ -193,38 +193,22 @@ function unflippedCol(game: Game): boolean {
   return getBestInds(unflippedInds).length >= 2;
 }
 
-/** Check if top discard Card matches one of Player's flipped, swappable Cards
+/** Check if a Card matches one of a Player's flipped, swappable Cards
  *
  * Takes:
  * - game: a Game instance
- * - player: a Player instance (defaults to current player)
- * Returns: boolean, true if there's a match, otherwise false
- */
-
-function matchWithDiscard(game: Game, plyr: Player = game.currPlayer): boolean {
-  const cards = plyr.cards;
-  for (let card of cards) {
-    const topDiscard = game.topDiscard?.value;
-    if (card.flipped && !card.locked && (card.value === topDiscard)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/** Check if currPlayer's drawnCard matches one of their flipped, swappable Cards
- *
- * Takes: game, a Game instance
+ * - card: a Card instance
+ * - player: a Player instance (default to current Player)
  * Returns an array of a boolean and a number.  The boolean is true if there's
- *   a match, otherwise false. The number is the index of the matching card,
- *   or -1 if there is no match.
+ *   a match, otherwise false. The number is the index vertical to the matching
+ *   card, or -1 if there is no match.
  */
 
-function matchWithDrawnCard(game: Game): [boolean, number] {
-  const cards = game.currPlayer.cards;
+function checkForMatch(game: Game, card: Card, player: Player = game.currPlayer):
+  [boolean, number] {
+  const cards = player.cards;
   for (let i = 0; i < cards.length; i++) {
-    const drawnVal = game.currPlayer.drawnCard?.value;
-    if (cards[i].flipped && !cards[i].locked && (cards[i].value === drawnVal)) {
+    if (cards[i].flipped && !cards[i].locked && (cards[i].value === card.value)) {
       const ind = i < 3 ? i + 3 : i - 3;
       return [true, ind];
     }
@@ -234,7 +218,7 @@ function matchWithDrawnCard(game: Game): [boolean, number] {
 
 
 /** Make array of array of point values and indexes of current player's
- *  flipped, not locked cards. Sorts them from highest point value to lowest.
+ *  flipped, not locked cards. Sort them from highest point value to lowest.
  *
  * Takes: game, a Game instance
  * Returns: array of arrays of two numbers. The 1st number represents a Card's
@@ -262,22 +246,24 @@ function sortVals(game: Game): [number, number][] {
 
 /** For deciding whether to lock in a column. Find the lowest point value
  * flipped Card in an unlocked column. Find what the total column point value
- * would be if Player took their drawn card in the unflipped spot in that column.
+ * would be if Player took a Card in the unflipped spot in that column.
  *
- * Takes: game, a Game instance
+ * Takes:
+ * - game: a Game instance
+ * - card: a Card instance
  * Returns: array of two numbers. The 1st represents the potential column point
  *   value. The 2nd represents the index of the unflipped card in that column.
  */
 
-function getLowColPoints(game: Game): [number, number] {
+function getLowColPoints(game: Game, card: Card): [number, number] {
   const cards = game.currPlayer.cards;
-  const drawnVal = numberifyVal(game.currPlayer.drawnCard?.value as string);
+  const val = numberifyVal(card.value);
 
   let lowColPoints = 21;
   let lowColInd = 6;
   for (let i = 0; i < cards.length; i++) {
     if (!cards[i].locked && cards[i].flipped) {
-      const colPoints = numberifyVal(cards[i].value) + drawnVal;
+      const colPoints = numberifyVal(cards[i].value) + val;
       if (colPoints < lowColPoints) {
         lowColPoints = colPoints;
         lowColInd = i < 3 ? i + 3 : i - 3;
@@ -308,28 +294,34 @@ function getBadVals(game: Game): Record<number, number> {
  *  to discard--the Card worth the most points that the next player doesn't want
  *
  * Takes:
- * - sortedValsWithInd: array of arrays of two numbers, representing the point
- *   values and indexes of a Player's unflipped, not locked Cards
- * - badVals: object where the keys represent card values the next player wants
+ * - game: a Game instance
+ * - sortedValsWithInds: array of arrays of 2 numbers representing the point
+ *   value and index of Cards.  Defaults to point values and indexes of all the
+ *   current Players unflipped, swappable cards, sorted from high to low points
  * Returns: an array of 2 numbers represening the point value and index of the
  *   card that would be best to discard, if any.  If none found, undefined
  */
 
-function getBestValToSwap(
-      sortedValsWithInds: [number, number][],
-      badVals: Record<number, number>
-    ): [number, number] | undefined {
-  if (sortedValsWithInds.length < 1) {
+function getBestToSwap(
+  game: Game,
+  sortedValsWithInds: [number, number][] = sortVals(game)
+): [number, number] | undefined {
+  const sortedVals = sortedValsWithInds;
+
+  if (sortedVals.length < 1) {
     return;
   }
 
-  if (!(sortedValsWithInds[0][0] in badVals) || chanceTrue(.05)) {
-    return sortedValsWithInds[0];
+  // The next player wants cards with these values
+  const badVals = getBadVals(game);
+
+  if (!(sortedVals[0][0] in badVals) || chanceTrue(.05)) {
+    return sortedVals[0];
   }
 
-  if (sortedValsWithInds.length >= 2) {
-    sortedValsWithInds.shift();
-    return getBestValToSwap(sortedValsWithInds, badVals);
+  if (sortedVals.length >= 2) {
+    sortedVals.shift();
+    return getBestToSwap(game, sortedVals);
   }
   return;
 }
@@ -355,7 +347,7 @@ function getIndInPinch(drawnVal: number, srtdVals: [number, number][]): number {
   }
 }
 
-/** Covertts Card's value to it numerical point value
+/** Converts Card's value to its numerical point value
  *
  * Takes: string representing a Card's value
  * Returns: number representing a Card's point value
@@ -395,8 +387,8 @@ function chanceTrue(chance: number): boolean {
 
 export {
   randSelectPlayer, getNextPlayer, randSelectCardInd, getIndFromCardSpaceId,
-  getCardSpaceId, unflippedCol, chanceTrue, matchWithDiscard, getPlayerIndex,
+  getCardSpaceId, unflippedCol, chanceTrue, checkForMatch, getPlayerIndex,
   getDrawnCardSpaceId, sortVals, numberifyVal, getLowColPoints, getUnflippedInds,
-  getBestInds, getBadVals, getBestValToSwap, getIndInPinch, matchWithDrawnCard,
-  checkAllFlipped, getWinnerInd,
+  getBestInds, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
+  getWinnerInd,
 };
