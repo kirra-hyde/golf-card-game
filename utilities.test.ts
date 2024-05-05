@@ -210,11 +210,11 @@ describe("computer AI helpers", function () {
     testPlayer2.cards[4].flipped = true;
     testPlayer2.cards[5].flipped = true;
     testPlayer2.cards[5].locked = true;
-    expect(sortVals(testGame)).toEqual([[10, 3], [1, 4]]);
+    expect(sortVals(testGame)).toEqual([["QUEEN", 3], ["ACE", 4]]);
     testPlayer2.cards[5].flipped = false;
     testPlayer2.cards[5].locked = false;
     testPlayer2.cards[2].locked = false;
-    expect(sortVals(testGame)).toEqual([[10, 3], [9, 2], [1, 4]]);
+    expect(sortVals(testGame)).toEqual([["QUEEN", 3], ["9", 2], ["ACE", 4]]);
 
     testGame.currPlayer = testPlayer3;
     testPlayer3.cards[1].flipped = true;
@@ -227,7 +227,7 @@ describe("computer AI helpers", function () {
     testPlayer3.cards[4].locked = false;
     testPlayer3.cards[3].flipped = true;
     testPlayer3.cards[5].flipped = true;
-    expect(sortVals(testGame)).toEqual([[10, 5], [9, 3], [8, 1]]);
+    expect(sortVals(testGame)).toEqual([["QUEEN", 5], ["9", 3], ["8", 1]]);
   });
 
   test("getLowColPoints", function () {
@@ -272,14 +272,14 @@ describe("computer AI helpers", function () {
     testPlayer3.cards[3].flipped = true;
     testPlayer3.cards[4].flipped = true;
     testPlayer3.cards[5].flipped = true;
-    expect(getBestToSwap(testGame)).toEqual([10, 5]);
+    expect(getBestToSwap(testGame)).toEqual(["QUEEN", 5]);
     testPlayer4.cards[3].flipped = true;
     testPlayer4.cards[4].flipped = true;
     testPlayer4.cards[5].flipped = true;
     Math.random = vi.fn(() => .8);
-    expect(getBestToSwap(testGame)).toEqual([1, 4]);
+    expect(getBestToSwap(testGame)).toEqual(["ACE", 4]);
     Math.random = vi.fn(() => .03);
-    expect(getBestToSwap(testGame)).toEqual([10, 5]);
+    expect(getBestToSwap(testGame)).toEqual(["QUEEN", 5]);
     testPlayer3.cards[4].locked = true;
     testPlayer3.cards[1].locked = true;
     testPlayer3.cards[1].flipped = true;
@@ -289,11 +289,11 @@ describe("computer AI helpers", function () {
 
   test("getIndInPinch", function() {
     Math.random = vi.fn(() => .6);
-    expect(getIndInPinch(9, [[10, 5],[9, 3],[1, 4]])).toEqual(-1);
+    expect(getIndInPinch(9, [["10", 5],["9", 3],["1", 4]])).toEqual(-1);
     Math.random = vi.fn(() => .8);
-    expect(getIndInPinch(9, [[10, 5],[9, 3],[1, 4]])).toEqual(1);
+    expect(getIndInPinch(9, [["10", 5],["9", 3],["1", 4]])).toEqual(1);
 
     Math.random = vi.fn(() => .6);
-    expect(getIndInPinch(6, [[10, 5],[9, 3]])).toEqual(0);
+    expect(getIndInPinch(6, [["10", 5],["9", 3]])).toEqual(0);
   });
 });

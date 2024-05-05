@@ -339,7 +339,7 @@ function determineDrawOrFlip(game: Game):
     return ["drawDiscard", lowColInd];
   }
 
-  const value = numberifyVal(game.topDiscard?.value as string);
+  const value = numberifyVal(topDiscard.value);
 
   //If card at top of discard pile is decent, and there's a good place to take
   // it at, take it.
@@ -362,7 +362,7 @@ function determineDrawOrFlip(game: Game):
     // player doesn't want, if any.
     const worstValWithInd = getBestToSwap(game);
     // If card in discard pile is an improvement on worst card, take it
-    if (worstValWithInd && (worstValWithInd[0] > value)) {
+    if (worstValWithInd && (numberifyVal(worstValWithInd[0]) > value)) {
       return ["drawDiscard", worstValWithInd[1]];
     }
   }
@@ -414,7 +414,8 @@ function determineTakeOrDiscard(game: Game): number {
   }
 
   // The value of the current player's drawn card
-  const drawnVal = numberifyVal(game.currPlayer.drawnCard?.value as string);
+  const drawnVal = drawnCard.value;
+  const drawnNumVal = numberifyVal(drawnVal);
 
   const unflippedColInds = getBestInds(getUnflippedInds(game));
 
@@ -425,11 +426,11 @@ function determineTakeOrDiscard(game: Game): number {
   if (unflippedColInds.length >= 1) {
     const ind = unflippedColInds[0];
     if (
-      drawnVal <= 2 ||
-      (drawnVal === 3 && chanceTrue(.95)) ||
-      (drawnVal === 4 && chanceTrue(.9)) ||
-      (drawnVal === 5 && chanceTrue(.85)) ||
-      (drawnVal === 6 && chanceTrue(.65)) ||
+      drawnNumVal <= 2 ||
+      (drawnNumVal === 3 && chanceTrue(.98)) ||
+      (drawnNumVal === 4 && chanceTrue(.95)) ||
+      (drawnNumVal === 5 && chanceTrue(.9)) ||
+      (drawnNumVal === 6 && chanceTrue(.8)) ||
       chanceTrue(.55)
     ) {
       return ind;
@@ -453,18 +454,18 @@ function determineTakeOrDiscard(game: Game): number {
     if (!(drawnVal in badVals) || chanceTrue(.05)) {
       return -1;
     } else {
-      return getIndInPinch(drawnVal, sortedValsAndInds);
+      return getIndInPinch(drawnNumVal, sortedValsAndInds);
     }
   }
 
   const [worstVal, worstInd] = worstValWithInd;
 
   // If drawn card is lower than best card to swap, swap them
-  if (drawnVal < worstVal) {
+  if (drawnNumVal < numberifyVal(worstVal)) {
     if (
-      drawnVal <= 4 ||
-      (drawnVal <= 6 && chanceTrue(.95)) ||
-      (drawnVal >= 7 && chanceTrue(.9))
+      drawnNumVal <= 4 ||
+      (drawnNumVal <= 6 && chanceTrue(.95)) ||
+      (drawnNumVal >= 7 && chanceTrue(.9))
     ) {
       return worstInd;
     }

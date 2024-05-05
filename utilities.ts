@@ -245,25 +245,25 @@ function checkForMatch(game: Game, card: Card, player: Player = game.currPlayer)
 }
 
 
-/** Make array of array of point values and indexes of current player's
- *  flipped, not locked cards. Sort them from highest point value to lowest.
+/** Make array of array of values and indexes of current player's flipped,
+ *  not locked cards. Sort them from highest point value to lowest.
  *
  * Takes: game, a Game instance
- * Returns: array of arrays of two numbers. The 1st number represents a Card's
- *   point value, the 2nd its index. Arrays are ordered by point value.
+ * Returns: array of arrays of a string and a number. The string represents a
+ *   Card's value, the number its index. Arrays are ordered by point value.
  */
 
-function sortVals(game: Game): [number, number][] {
+function sortVals(game: Game): [string, number][] {
   const cards = game.currPlayer.cards;
-  const sortedVals: [number, number][] = [];
+  const sortedVals: [string, number][] = [];
   for (let i = 0; i < cards.length; i++) {
     if (cards[i].flipped && !cards[i].locked) {
-      const val = numberifyVal(cards[i].value);
+      const val = cards[i].value;
       sortedVals.push([val, i]);
     }
   }
   sortedVals.sort((a, b) => {
-    if (a[0] > b[0]) {
+    if (numberifyVal(a[0]) > numberifyVal(b[0])) {
       return -1;
     } else {
       return 1;
@@ -307,12 +307,12 @@ function getLowColPoints(game: Game, card: Card): [number, number] {
  * Returns: object where the keys represent Card values
  */
 
-function getBadVals(game: Game): Record<number, number> {
+function getBadVals(game: Game): Record<string, number> {
   const nextCards = getNextPlayer(game.players, game.currPlayer).cards;
-  const badVals: Record<number, number> = {};
+  const badVals: Record<string, number> = {};
   for (let card of nextCards) {
     if (card.flipped && !card.locked) {
-      badVals[numberifyVal(card.value)] = 1;
+      badVals[card.value] = 1;
     }
   }
   return badVals;
@@ -323,17 +323,17 @@ function getBadVals(game: Game): Record<number, number> {
  *
  * Takes:
  * - game: a Game instance
- * - sortedValsWithInds: array of arrays of 2 numbers representing the point
- *   value and index of Cards.  Defaults to point values and indexes of all the
- *   current Players unflipped, swappable cards, sorted from high to low points
- * Returns: an array of 2 numbers represening the point value and index of the
- *   card that would be best to discard, if any.  If none found, undefined
+ * - sortedValsWithInds: array of arrays of a string and number representing the
+ *   value and index of Cards.  Defaults to values and indexes of all the current
+ *   Players unflipped, swappable cards, sorted from high to low point value
+ * Returns: an array of a string and number represening the value and index of
+ *   the card that would be best to discard, if any.  If none found, undefined.
  */
 
 function getBestToSwap(
   game: Game,
-  sortedValsWithInds: [number, number][] = sortVals(game)
-): [number, number] | undefined {
+  sortedValsWithInds: [string, number][] = sortVals(game)
+): [string, number] | undefined {
   const sortedVals = sortedValsWithInds;
 
   if (sortedVals.length < 1) {
@@ -359,12 +359,12 @@ function getBestToSwap(
  *
  * Takes:
  * - drawnVal: number representing the value of the current Player's drawnCard
- * - srtdVals: array of arrays of 2 numbers of the point values and indexes of
- *   current player's flipped, not locked cards, sorted by point value
+ * - srtdVals: array of arrays of a string and number of the values and indexes
+ *   of current player's flipped, not locked cards, sorted by point value
  * Returns: number of index to take drawnCard at, or -1 to discard it
  */
 
-function getIndInPinch(drawnVal: number, srtdVals: [number, number][]): number {
+function getIndInPinch(drawnVal: number, srtdVals: [string, number][]): number {
   if ((drawnVal > 7 && chanceTrue(.75)) || srtdVals.length < 1) {
     return -1;
   } else {
