@@ -62,6 +62,33 @@ function getWinnerInd(game: Game): number {
   return lowInd;
 }
 
+/** Converts Card's value to its numerical point value
+ *
+ * Takes: string representing a Card's value
+ * Returns: number representing a Card's point value
+ */
+
+function numberifyVal(val: string): number {
+  let points: number;
+  switch (val) {
+    case "KING":
+      points = 0;
+      break;
+    case "ACE":
+      points = 1;
+      break;
+    case "JACK":
+      points = 10;
+      break;
+    case "QUEEN":
+      points = 10;
+      break;
+    default:
+      points = Number(val);
+  }
+  return points;
+}
+
 /** Get index of Card from id of HTML element affiliated with the Card
  *
  * Takes: id, a string of id of an HTML card element
@@ -83,7 +110,8 @@ function getIndFromCardSpaceId(id: string): number {
  */
 
 function getCardSpaceId(
-  cardInd: number, game: Game, player: Player = game.currPlayer): string {
+  cardInd: number, game: Game, player: Player = game.currPlayer
+): string {
   const playerInd = getPlayerIndex(game, player);
   return `p${playerInd + 1}-${cardInd}`;
 }
@@ -114,7 +142,8 @@ function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
  * Helpers functions used for computer player moves
 */
 
-/** Randomly choose an index of card to flip from among reasonable choices
+/** Randomly choose an index of card to flip from among cards in columns where
+ *  neither card has been flipped
  *
  * Takes:
  * - game: a Game instance
@@ -128,13 +157,12 @@ function randSelectCardInd(game: Game, plyr: Player = game.currPlayer): number {
   // Indexes of cards that are good to flip, if any
   const bestInds = getBestInds(unflippedInds);
 
-  // If there are cards that are good to flip, chose randomly from them
-  // If there aren't, chose randomly from all unflipped cards
-  if (bestInds.length >= 1) {
-    return bestInds[Math.floor(Math.random() * bestInds.length)];
-  } else {
-    return unflippedInds[Math.floor(Math.random() * unflippedInds.length)];
+  if (bestInds.length < 2) {
+    throw new Error(`Only invoke randSelectCardInd with on a player with a
+      column with no cards flipped`);
   }
+
+  return bestInds[Math.floor(Math.random() * bestInds.length)];
 }
 
 /** Get the indexes of unflipped cards that do not have a flipped card
@@ -260,7 +288,7 @@ function getLowColPoints(game: Game, card: Card): [number, number] {
   const val = numberifyVal(card.value);
 
   let lowColPoints = 21;
-  let lowColInd = 6;
+  let lowColInd = -1;
   for (let i = 0; i < cards.length; i++) {
     if (!cards[i].locked && cards[i].flipped) {
       const colPoints = numberifyVal(cards[i].value) + val;
@@ -345,33 +373,6 @@ function getIndInPinch(drawnVal: number, srtdVals: [number, number][]): number {
     // Take Card at index across from Card with lowest point value
     return lastInd < 3 ? lastInd + 3 : lastInd - 3;
   }
-}
-
-/** Converts Card's value to its numerical point value
- *
- * Takes: string representing a Card's value
- * Returns: number representing a Card's point value
- */
-
-function numberifyVal(val: string): number {
-  let points: number;
-  switch (val) {
-    case "KING":
-      points = 0;
-      break;
-    case "ACE":
-      points = 1;
-      break;
-    case "JACK":
-      points = 10;
-      break;
-    case "QUEEN":
-      points = 10;
-      break;
-    default:
-      points = Number(val);
-  }
-  return points;
 }
 
 /** Return true a percent of the time determined by passed in number

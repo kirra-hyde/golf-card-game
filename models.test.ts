@@ -88,17 +88,17 @@ describe("Game class", function () {
       expect(player.cards[0]).toBeInstanceOf(Card);
       expect(player.cards[5]).toBeInstanceOf(Card);
       expect(player.cards).toEqual([
-        { code: "1S", image: "www.pic1.com", value: "ACE", flipped: false },
-        { code: "2S", image: "www.pic2.com", value: "2", flipped: false },
-        { code: "3S", image: "www.pic3.com", value: "3", flipped: false },
-        { code: "4S", image: "www.pic4.com", value: "4", flipped: false },
-        { code: "5S", image: "www.pic5.com", value: "5", flipped: false },
-        { code: "6S", image: "www.pic6.com", value: "6", flipped: false },
+        { code: "1S", image: "www.pic1.com", value: "ACE", flipped: false, locked: false },
+        { code: "2S", image: "www.pic2.com", value: "2", flipped: false, locked: false },
+        { code: "3S", image: "www.pic3.com", value: "3", flipped: false, locked: false },
+        { code: "4S", image: "www.pic4.com", value: "4", flipped: false, locked: false },
+        { code: "5S", image: "www.pic5.com", value: "5", flipped: false, locked: false },
+        { code: "6S", image: "www.pic6.com", value: "6", flipped: false, locked: false },
       ]);
     }
 
     expect(game.topDiscard).toEqual(
-      { code: "7S", image: "www.pic7.com", value: "7", flipped: false }
+      { code: "7S", image: "www.pic7.com", value: "7", flipped: false, locked: false }
     );
   });
 
@@ -181,6 +181,7 @@ describe("Player class", function () {
       code: "KH",
       value: "KING",
       flipped: false,
+      locked: false,
       image: "www.pic.com"
     });
     expect(game.deckIsEmpty).toEqual(false);
