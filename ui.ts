@@ -1,5 +1,5 @@
 import { Game, Card, Player } from "./models.js";
-import { getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd } from "./utilties.js";
+import { getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd } from "./utilities.js";
 
 import drawnCardPlaceholder from "./images/drawn_placeholder.png";
 import discardsPlaceholder from "./images/discards_placeholder.png";

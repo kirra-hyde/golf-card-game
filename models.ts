@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getNextPlayer, randSelectPlayer, checkAllFlipped } from "./utilties.js";
+import { getNextPlayer, randSelectPlayer, checkAllFlipped } from "./utilities.js";
 
 const BASE_URL = "https://deckofcardsapi.com/api/deck";
 const CARDS_PER_HAND = 6;

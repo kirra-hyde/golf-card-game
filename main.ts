@@ -4,7 +4,7 @@ import {
   chanceTrue, checkForMatch, getNextPlayer, getPlayerIndex, unflippedCol,
   sortVals, numberifyVal, getLowColPoints, getUnflippedInds, getBestInds,
   getBadVals, getBestToSwap, getIndInPinch,
-} from "./utilties.js";
+} from "./utilities.js";
 import {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,

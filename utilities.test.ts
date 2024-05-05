@@ -5,7 +5,7 @@ import {
   getCardSpaceId, unflippedCol, checkForMatch, getPlayerIndex, getUnflippedInds,
   getDrawnCardSpaceId, sortVals, numberifyVal, getLowColPoints, getBestInds,
   getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped, getWinnerInd,
-} from "./utilties";
+} from "./utilities";
 
 
 let testPlayer1: Player;
