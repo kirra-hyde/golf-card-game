@@ -1,10 +1,10 @@
 <!-- PROJECT INTRO -->
 <div align="center">
-  <h3>Golf</h3>
+  <h1>Golf</h1>
   <p>A front end app for a card game, using Typescript and jQuery</p>
   <a href="https://jade-treacle-89190e.netlify.app">Try me out!</a>
 </div>
-
+</br>
 <img src="./images/screenshot.png" alt="Golf Screenshot">
 
 ### Built With
