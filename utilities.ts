@@ -131,11 +131,39 @@ function getDrawnCardSpaceId(game: Game): string {
  * Takes:
  * - game: a Game instance
  * - player: a Player instance (defaults to current player)
- * Returns: number, representing index of player
+ * Returns: number, representing the player's index
  */
 
 function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
   return game.players.indexOf(player);
+}
+
+/** Get the index of a Card in the current player's cards array
+ *
+ * Takes:
+ * - game: a Game instance
+ * - card: a Card instace
+ * Returns: number, representing the card's index
+ */
+
+function getCardIndex(game: Game, card: Card): number {
+  return game.currPlayer.cards.indexOf(card);
+}
+
+/** Get the index of the Card that's vertical to a Card in currPlayer's cards
+ *
+ * @param ind
+ * @returns
+ */
+
+function getVerticalInd(game: Game, card: Card): number {
+  const ind = getCardIndex(game, card);
+
+  if (ind < 3) {
+    return ind + 3;
+  } else {
+    return ind - 3;
+  }
 }
 
 /*******************************************************************************
@@ -245,31 +273,37 @@ function checkForMatch(game: Game, card: Card, player: Player = game.currPlayer)
 }
 
 
-/** Make array of array of values and indexes of current player's flipped,
- *  not locked cards. Sort them from highest point value to lowest.
+/** Get the lowest value flipped, not locked card in the current player's hand
  *
  * Takes: game, a Game instance
- * Returns: array of arrays of a string and a number. The string represents a
- *   Card's value, the number its index. Arrays are ordered by point value.
+ * Returns: a Card instance, the current player's best flipped unlocked Card
  */
 
-function sortVals(game: Game): [string, number][] {
+function getBestCard(game: Game): Card | undefined {
   const cards = game.currPlayer.cards;
-  const sortedVals: [string, number][] = [];
-  for (let i = 0; i < cards.length; i++) {
-    if (cards[i].flipped && !cards[i].locked) {
-      const val = cards[i].value;
-      sortedVals.push([val, i]);
-    }
-  }
-  sortedVals.sort((a, b) => {
-    if (numberifyVal(a[0]) > numberifyVal(b[0])) {
-      return -1;
-    } else {
-      return 1;
-    }
-  });
-  return sortedVals;
+
+  const sortedFlippedCards = cards
+    .filter(card => card.flipped && !card.locked)
+    .sort((a, b) => numberifyVal(a.value) - numberifyVal(b.value));
+
+  return sortedFlippedCards[0];
+}
+
+/** Sort the current player's flipped, not locked cards from highest point
+ *  value to lowest (worst to best)
+ *
+ * Takes: game, a Game instance
+ * Returns: array of flipped, not locked cards where the worst are first
+ */
+
+function sortCards(game: Game): Card[] {
+  const cards = game.currPlayer.cards;
+
+  const sortedFlippedCards = cards
+    .filter(card => card.flipped && !card.locked)
+    .sort((a, b) => numberifyVal(b.value) - numberifyVal(a.value));
+
+  return sortedFlippedCards;
 }
 
 /** For deciding whether to lock in a column. Find the lowest point value
@@ -284,21 +318,14 @@ function sortVals(game: Game): [string, number][] {
  */
 
 function getLowColPoints(game: Game, card: Card): [number, number] {
-  const cards = game.currPlayer.cards;
-  const val = numberifyVal(card.value);
+  const bestCard = getBestCard(game);
 
-  let lowColPoints = 21;
-  let lowColInd = -1;
-  for (let i = 0; i < cards.length; i++) {
-    if (!cards[i].locked && cards[i].flipped) {
-      const colPoints = numberifyVal(cards[i].value) + val;
-      if (colPoints < lowColPoints) {
-        lowColPoints = colPoints;
-        lowColInd = i < 3 ? i + 3 : i - 3;
-      }
-    }
+  if (bestCard) {
+    const colTotal = numberifyVal(bestCard.value) + numberifyVal(card.value);
+    return [colTotal, getVerticalInd(game, bestCard)];
+  } else {
+    return [20, -1];
   }
-  return [lowColPoints, lowColInd];
 }
 
 /** Get the values of the next Player's unflipped, not locked cards
@@ -318,38 +345,33 @@ function getBadVals(game: Game): Record<string, number> {
   return badVals;
 }
 
-/** Get the value and index of the flipped, not locked Card that would be best
- *  to discard--the Card worth the most points that the next player doesn't want
+/** Get the current Player's Card that would be best to discard--the flipped
+ *  and not locked Card worth the most points that the next player doesn't want
  *
  * Takes:
  * - game: a Game instance
- * - sortedValsWithInds: array of arrays of a string and number representing the
- *   value and index of Cards.  Defaults to values and indexes of all the current
- *   Players unflipped, swappable cards, sorted from high to low point value
- * Returns: an array of a string and number represening the value and index of
- *   the card that would be best to discard, if any.  If none found, undefined.
+ * - sorted: array of Cards. Defaults to the current Player's flipped, unlocked
+ *   cards, sorted from high to low point value
+ * Returns: the Card that would be best to discard, if any.  If none, undefined.
  */
 
-function getBestToSwap(
-  game: Game,
-  sortedValsWithInds: [string, number][] = sortVals(game)
-): [string, number] | undefined {
-  const sortedVals = sortedValsWithInds;
+function getBestToSwap(game: Game, srtd: Card[] = sortCards(game)): Card | undefined {
+  const sortedCards = srtd;
 
-  if (sortedVals.length < 1) {
+  if (sortedCards.length < 1) {
     return;
   }
 
   // The next player wants cards with these values
   const badVals = getBadVals(game);
 
-  if (!(sortedVals[0][0] in badVals) || chanceTrue(.05)) {
-    return sortedVals[0];
+  if (!(sortedCards[0].value in badVals) && chanceTrue(.95)) {
+    return sortedCards[0];
   }
 
-  if (sortedVals.length >= 2) {
-    sortedVals.shift();
-    return getBestToSwap(game, sortedVals);
+  if (sortedCards.length >= 2) {
+    sortedCards.shift();
+    return getBestToSwap(game, sortedCards);
   }
   return;
 }
@@ -358,20 +380,20 @@ function getBestToSwap(
  *  but the next player wants it AND wants all the flipped, not locked Cards
  *
  * Takes:
- * - drawnVal: number representing the value of the current Player's drawnCard
- * - srtdVals: array of arrays of a string and number of the values and indexes
- *   of current player's flipped, not locked cards, sorted by point value
+ * - drawnPnt: number of the point value of the current Player's drawn Card
+ * - srtdCrds: array cards, the current player's flipped, not locked cards
+ *   sorted by point value
  * Returns: number of index to take drawnCard at, or -1 to discard it
  */
 
-function getIndInPinch(drawnVal: number, srtdVals: [string, number][]): number {
-  if ((drawnVal > 7 && chanceTrue(.75)) || srtdVals.length < 1) {
+function getIndInPinch(game: Game, drawnPnt: number, srtdCrds: Card[]): number {
+  if ((drawnPnt > 7 && chanceTrue(.75)) || srtdCrds.length < 1) {
     return -1;
   } else {
-    // Last item in sortedVals will have lowest point value
-    const lastInd = srtdVals[srtdVals.length - 1][1];
+    // Last card in sortedVals will have lowest point value
+    const bestCard = srtdCrds[srtdCrds.length - 1];
     // Take Card at index across from Card with lowest point value
-    return lastInd < 3 ? lastInd + 3 : lastInd - 3;
+    return getVerticalInd(game, bestCard);
   }
 }
 
@@ -389,7 +411,7 @@ function chanceTrue(chance: number): boolean {
 export {
   randSelectPlayer, getNextPlayer, randSelectCardInd, getIndFromCardSpaceId,
   getCardSpaceId, unflippedCol, chanceTrue, checkForMatch, getPlayerIndex,
-  getDrawnCardSpaceId, sortVals, numberifyVal, getLowColPoints, getUnflippedInds,
+  getDrawnCardSpaceId, numberifyVal, getLowColPoints, getUnflippedInds,
   getBestInds, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
-  getWinnerInd,
+  getWinnerInd, getCardIndex, getVerticalInd, sortCards,
 };
