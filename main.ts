@@ -1,9 +1,9 @@
 import { Game, Player, Card } from "./models.js";
 import {
-  randSelectCardInd, getIndFromCardSpaceId, getCardSpaceId, getDrawnCardSpaceId,
-  chanceTrue, checkForMatch, getNextPlayer, getPlayerIndex, unflippedCol,
-  numberifyVal, getLowColPoints, getUnflippedInds, getBestInds, getBadVals,
-  getBestToSwap, getIndInPinch, getCardIndex, getVerticalInd, sortCards,
+  randSelectEmptyColInd, getIndFromCardSpaceId, getCardSpaceId, getPlayerIndex,
+  getDrawnCardSpaceId, chanceTrue, checkForMatch, getNextPlayer, numberifyVal,
+  getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, getCardIndex,
+  getVerticalInd, sortCards,
 } from "./utilities.js";
 import {
   showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
@@ -71,8 +71,8 @@ async function startRound(game: Game): Promise<void> {
   showCard(game.topDiscard as Card, "discards");
 
   for (let player of game.players.slice(1)) {
-    flip(game, randSelectCardInd(game, player), player);
-    flip(game, randSelectCardInd(game, player), player);
+    flip(game, randSelectEmptyColInd(game, player) as number, player);
+    flip(game, randSelectEmptyColInd(game, player) as number, player);
   }
   await shortPause();
   showFlipMessage();
@@ -281,7 +281,7 @@ async function handleComputerTurn(game: Game): Promise<void> {
   const drawOrFlipAction = determineDrawOrFlip(game);
 
   if (drawOrFlipAction === "flip") {
-    flip(game, randSelectCardInd(game));
+    flip(game, randSelectEmptyColInd(game) as number);
     return;
   }
   if (drawOrFlipAction[0] === "drawDiscard") {
@@ -339,6 +339,8 @@ function determineDrawOrFlip(game: Game):
     return ["drawDiscard", lowColInd];
   }
 
+  const unflippedColInd = randSelectEmptyColInd(game);
+
   //If card at top of discard pile is decent, and there's a good place to take
   // it at, take it.
   if (
@@ -351,9 +353,8 @@ function determineDrawOrFlip(game: Game):
   ) {
 
     // An unflipped column is the best place to take a card
-    const unflippedColInds = getBestInds(getUnflippedInds(game));
-    if (unflippedColInds.length >= 1) {
-      return ["drawDiscard", unflippedColInds[0]];
+    if (unflippedColInd) {
+      return ["drawDiscard", unflippedColInd];
     }
 
     // The highest flipped swappable card the next player doesn't want, if any
@@ -371,7 +372,7 @@ function determineDrawOrFlip(game: Game):
   }
 
   // Don't flip a card if doing so will lock a column
-  if (!unflippedCol(game)) {
+  if (!unflippedColInd) {
     return "drawDeck";
   }
 
@@ -412,14 +413,13 @@ function determineTakeOrDiscard(game: Game): number {
     return lowColInd;
   }
 
-  const unflippedColInds = getBestInds(getUnflippedInds(game));
+  const unflippedColInd = randSelectEmptyColInd(game);
 
   // Vals that next player wants, so avoid discarding cards with these values
   const badVals = getBadVals(game);
 
   // If there's a column without flipped cards, take half-decent cards into it
-  if (unflippedColInds.length >= 1) {
-    const ind = unflippedColInds[0];
+  if (unflippedColInd) {
     if (
       drawnPoints <= 2 ||
       (drawnPoints === 3 && chanceTrue(.98)) ||
@@ -428,12 +428,12 @@ function determineTakeOrDiscard(game: Game): number {
       (drawnPoints === 6 && chanceTrue(.8)) ||
       chanceTrue(.55)
     ) {
-      return ind;
+      return unflippedColInd;
     }
 
     // Even bad cards should be taken if you don't want the next player to get it
     if (drawnVal in badVals && chanceTrue(.9)) {
-      return ind;
+      return unflippedColInd;
     }
   }
 

@@ -182,74 +182,39 @@ function getVerticalInd(game: Game, card: Card, player: Player = game.currPlayer
  * Returns: number representing an index in an array of Card instances
  */
 
-function randSelectCardInd(game: Game, plyr: Player = game.currPlayer): number {
-  const unflippedInds = getUnflippedInds(game, plyr);
+function randSelectEmptyColInd(game: Game, player: Player = game.currPlayer):
+number | undefined {
+  const unflippedColInds = getEmptyColInds(game, player);
 
-  // Indexes of cards that are good to flip, if any
-  const bestInds = getBestInds(unflippedInds);
-
-  if (bestInds.length < 2) {
-    throw new Error(`Only invoke randSelectCardInd with on a player with a
-      column with no cards flipped`);
+  if (unflippedColInds.length < 2) {
+    return;
   }
 
-  return bestInds[Math.floor(Math.random() * bestInds.length)];
+  return unflippedColInds[Math.floor(Math.random() * unflippedColInds.length)];
 }
 
 /** Get the indexes of unflipped cards that do not have a flipped card
  *  above them or below them
  *
- * Takes: inds, an array of numbers representing indexes of unflipped cards
+ * Takes:
+ * - game: a Game instance
+ * - player: a Player instance (defaults to current player)
  * Returns: an array of numbers representing indexes of unflipped cards
  *    that do not have flipped cards above them or below them
  */
 
-function getBestInds(inds: number[]): number[] {
+function getEmptyColInds(game: Game, player: Player = game.currPlayer): number[] {
   const bestInds: number[] = [];
+  const cards = player.cards;
 
-  const passedInds: Record<number, number> = {};
-  for (let ind of inds) {
-
-    if (ind - 3 in passedInds) {
-      bestInds.push(ind);
-      bestInds.push(ind - 3);
+  for (let i = 0; i < 3; i++) {
+    if (!cards[i].flipped && !cards[i+3].flipped) {
+      bestInds.push(i);
+      bestInds.push(i + 3);
     }
-    passedInds[ind] = 1;
   }
 
   return bestInds;
-}
-
-/** Get the indexes of a Player's unflipped Cards
- *
- * Takes:
- * - game: a Game instance
- * - player: a Player instance (defaults to current player)
- * Returns: an array of numbers of the indexes of unflipped cards
- */
-
-function getUnflippedInds(game: Game, plr: Player = game.currPlayer): number[] {
-  const unflippedInds: number[] = [];
-
-  for (let i = 0; i < plr.cards.length; i++) {
-    if (plr.cards[i].flipped === false) {
-      unflippedInds.push(i);
-    }
-  }
-
-  return unflippedInds;
-}
-
-/** Check if there is a column where neither Card is flipped
- *
- * Takes: game, a Game instance
- * Returns: boolean, true if there is an unflipped column, otherwise false
- */
-
-function unflippedCol(game: Game): boolean {
-  const unflippedInds = getUnflippedInds(game);
-
-  return getBestInds(unflippedInds).length >= 2;
 }
 
 /** Check if a Card matches one of a Player's flipped, swappable Cards
@@ -411,9 +376,8 @@ function chanceTrue(chance: number): boolean {
 
 
 export {
-  randSelectPlayer, getNextPlayer, randSelectCardInd, getIndFromCardSpaceId,
-  getCardSpaceId, unflippedCol, chanceTrue, checkForMatch, getPlayerIndex,
-  getDrawnCardSpaceId, numberifyVal, getLowColPoints, getUnflippedInds,
-  getBestInds, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
-  getWinnerInd, getCardIndex, getVerticalInd, sortCards,
+  randSelectPlayer, getNextPlayer, randSelectEmptyColInd, getIndFromCardSpaceId,
+  getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex,  numberifyVal,
+  getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
+  getWinnerInd, getCardIndex, getVerticalInd, sortCards, getDrawnCardSpaceId,
 };
