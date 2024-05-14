@@ -146,8 +146,9 @@ function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
  * Returns: number, representing the card's index
  */
 
-function getCardIndex(game: Game, card: Card): number {
-  return game.currPlayer.cards.indexOf(card);
+function getCardIndex(game: Game, card: Card, player: Player = game.currPlayer): number {
+  const playerInd = getPlayerIndex(game, player);
+  return game.players[playerInd].cards.indexOf(card);
 }
 
 /** Get the index of the Card that's vertical to a Card in currPlayer's cards
@@ -156,8 +157,8 @@ function getCardIndex(game: Game, card: Card): number {
  * @returns
  */
 
-function getVerticalInd(game: Game, card: Card): number {
-  const ind = getCardIndex(game, card);
+function getVerticalInd(game: Game, card: Card, player: Player = game.currPlayer): number {
+  const ind = getCardIndex(game, card, player);
 
   if (ind < 3) {
     return ind + 3;

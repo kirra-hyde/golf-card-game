@@ -99,8 +99,8 @@ async function endRound(game: Game): Promise<void> {
   for (let player of game.players) {
     let score = 0;
     for (let card of player.cards) {
-      const ind = getCardIndex(game, card);
-      const verticalInd = getVerticalInd(game, card);
+      const ind = getCardIndex(game, card, player);
+      const verticalInd = getVerticalInd(game, card, player);
       if (!card.flipped) {
         showCard(card, getCardSpaceId(ind, game, player));
       }
