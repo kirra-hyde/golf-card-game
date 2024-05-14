@@ -346,7 +346,7 @@ function determineDrawOrFlip(game: Game):
     (topDiscardPoints === 2 && chanceTrue(.95)) ||
     (topDiscardPoints === 3 && chanceTrue(.85)) ||
     (topDiscardPoints === 4 && chanceTrue(.75)) ||
-    (topDiscardPoints === 5 && chanceTrue(.65)) ||
+    (topDiscardPoints === 5 && chanceTrue(.6)) ||
     (topDiscardPoints === 6 && chanceTrue(.3))
   ) {
 
@@ -393,6 +393,8 @@ function determineTakeOrDiscard(game: Game): number {
   console.log("In main: determineTakeOrDiscard");
 
   const drawnCard = game.currPlayer.drawnCard as Card;
+  const drawnVal = drawnCard.value;
+  const drawnPoints = numberifyVal(drawnVal);
 
   // Always try to get cards of same value in the same column
   const [isMatch, matchInd] = checkForMatch(game, drawnCard);
@@ -409,10 +411,6 @@ function determineTakeOrDiscard(game: Game): number {
   ) {
     return lowColInd;
   }
-
-  // The value of the current player's drawn card
-  const drawnVal = drawnCard.value;
-  const drawnPoints = numberifyVal(drawnVal);
 
   const unflippedColInds = getBestInds(getUnflippedInds(game));
 
@@ -499,12 +497,12 @@ function flip(game: Game, ind: number, player: Player = game.currPlayer): void {
   player.flipCard(ind);
   const lockedInds = game.lockCards(ind, player);
 
-  const playerInd = getPlayerIndex(game, player);
-  showCard(player.cards[ind], `p${playerInd + 1}-${ind}`);
+  const cardSpaceId = getCardSpaceId(ind, game, player);
+  showCard(player.cards[ind], cardSpaceId);
 
   // If the card flipped is the main player's, update classes
   if (player === game.players[0]) {
-    $(`#${getCardSpaceId(ind, game, player)}`).removeClass("flippable");
+    $(`#${cardSpaceId}`).removeClass("flippable");
     if (lockedInds) {
       makeUnclickable(game, lockedInds, player);
     }

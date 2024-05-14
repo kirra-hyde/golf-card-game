@@ -153,8 +153,10 @@ function getCardIndex(game: Game, card: Card, player: Player = game.currPlayer):
 
 /** Get the index of the Card that's vertical to a Card in currPlayer's cards
  *
- * @param ind
- * @returns
+ * Takes:
+ * - game: a Game instance
+ * - card: a Card instance
+ * Returns: number, representing the index vertical to the card
  */
 
 function getVerticalInd(game: Game, card: Card, player: Player = game.currPlayer): number {
@@ -263,14 +265,13 @@ function unflippedCol(game: Game): boolean {
 
 function checkForMatch(game: Game, card: Card, player: Player = game.currPlayer):
   [boolean, number] {
-  const cards = player.cards;
-  for (let i = 0; i < cards.length; i++) {
-    if (cards[i].flipped && !cards[i].locked && (cards[i].value === card.value)) {
-      const ind = i < 3 ? i + 3 : i - 3;
-      return [true, ind];
-    }
+  const cards = player.cards.filter(el => el.flipped && !el.locked);
+  const match = cards.find(el => el.value === card.value);
+  if (match) {
+    return [true, getVerticalInd(game, match, player)];
+  } else {
+    return [false, -1];
   }
-  return [false, -1];
 }
 
 
@@ -366,7 +367,7 @@ function getBestToSwap(game: Game, srtd: Card[] = sortCards(game)): Card | undef
   // The next player wants cards with these values
   const badVals = getBadVals(game);
 
-  if (!(sortedCards[0].value in badVals) && chanceTrue(.95)) {
+  if (!(sortedCards[0].value in badVals) || chanceTrue(.05)) {
     return sortedCards[0];
   }
 
