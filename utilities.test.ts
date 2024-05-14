@@ -1,10 +1,10 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { Game, Player, Card } from "./models";
 import {
-  randSelectPlayer, getNextPlayer, randSelectCardInd, getIndFromCardSpaceId,
-  getCardSpaceId, unflippedCol, checkForMatch, getPlayerIndex, getUnflippedInds,
-  getDrawnCardSpaceId, numberifyVal, getLowColPoints, getBestInds, sortCards,
-  getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped, getWinnerInd,
+  randSelectPlayer, getNextPlayer, randSelectEmptyColInd, getIndFromCardSpaceId,
+  getCardSpaceId, checkForMatch, getPlayerIndex, getDrawnCardSpaceId,
+  numberifyVal, getLowColPoints, getEmptyColInds, sortCards, getBadVals,
+  getBestToSwap, getIndInPinch, checkAllFlipped, getWinnerInd,
 } from "./utilities";
 
 
@@ -136,51 +136,36 @@ describe("misc utilities", function () {
 });
 
 describe("computer AI helpers", function () {
-  test("randSelectCardInd", function () {
+  test("randSelectEmptyColInd", function () {
     testGame.currPlayer = testPlayer3;
     Math.random = vi.fn(() => .3);
-    expect(randSelectCardInd(testGame)).toEqual(0);
+    expect(randSelectEmptyColInd(testGame)).toEqual(3);
     Math.random = vi.fn(() => .7);
-    expect(randSelectCardInd(testGame)).toEqual(5);
+    expect(randSelectEmptyColInd(testGame)).toEqual(2);
     testPlayer3.cards[0].flipped = true;
     testPlayer3.cards[1].flipped = true;
     testPlayer3.cards[3].flipped = true;
     testPlayer3.cards[4].flipped = true;
     Math.random = vi.fn(() => .4);
-    expect(randSelectCardInd(testGame)).toEqual(5);
+    expect(randSelectEmptyColInd(testGame)).toEqual(2);
     Math.random = vi.fn(() => .6);
-    expect(randSelectCardInd(testGame)).toEqual(2);
+    expect(randSelectEmptyColInd(testGame)).toEqual(5);
     testPlayer3.cards[2].flipped = true;
-    expect(() => randSelectCardInd(testGame)).toThrowError();
+    expect(randSelectEmptyColInd(testGame)).toBeUndefined();
   });
 
-  test("getBestInds", function () {
-    expect(getBestInds([0, 1, 2, 3, 4, 5])).toEqual([3, 0, 4, 1, 5, 2]);
-    expect(getBestInds([1, 2, 3, 4, 5])).toEqual([4, 1, 5, 2]);
-    expect(getBestInds([1, 2, 3, 5])).toEqual([5, 2]);
-    expect(getBestInds([1, 3, 5])).toEqual([]);
-  });
-
-  test("getUnflippedInds", function () {
+  test("getEmptyColInds", function () {
     testGame.currPlayer = testPlayer4;
-    expect(getUnflippedInds(testGame)).toEqual([0, 1, 2, 3, 4, 5]);
-    for (let i = 0; i < 6; i++) {
-      testPlayer4.cards[i].flipped = true;
-    }
-    testPlayer4.cards[4].flipped = false;
-    expect(getUnflippedInds(testGame)).toEqual([4]);
-  });
 
-  test("unflippedCol", function () {
-    testGame.currPlayer = testPlayer1;
-    testPlayer1.cards[0].flipped = true;
-    testPlayer1.cards[1].flipped = true;
-    testPlayer1.cards[3].flipped = true;
-    testPlayer1.cards[4].flipped = true;
-    expect(unflippedCol(testGame)).toEqual(true);
-    testPlayer1.cards[4].flipped = false;
-    testPlayer1.cards[5].flipped = true;
-    expect(unflippedCol(testGame)).toEqual(false);
+    expect(getEmptyColInds(testGame)).toEqual([0, 3, 1, 4, 2, 5]);
+    testPlayer4.cards[0].flipped = true;
+    expect(getEmptyColInds(testGame)).toEqual([1, 4, 2, 5]);
+    testPlayer4.cards[3].flipped = true;
+    expect(getEmptyColInds(testGame)).toEqual([1, 4, 2, 5]);
+    testPlayer4.cards[4].flipped = true;
+    expect(getEmptyColInds(testGame)).toEqual([2, 5]);
+    testPlayer4.cards[2].flipped = true;
+    expect(getEmptyColInds(testGame)).toEqual([]);
   });
 
   test("checkForMatch", function () {

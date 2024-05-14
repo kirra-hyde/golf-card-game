@@ -396,6 +396,9 @@ function determineTakeOrDiscard(game: Game): number {
   const drawnCard = game.currPlayer.drawnCard as Card;
   const drawnVal = drawnCard.value;
   const drawnPoints = numberifyVal(drawnVal);
+  const unflippedColInd = randSelectEmptyColInd(game);
+  // Vals that next player wants, so avoid discarding cards with these values
+  const badVals = getBadVals(game);
 
   // Always try to get cards of same value in the same column
   const [isMatch, matchInd] = checkForMatch(game, drawnCard);
@@ -412,11 +415,6 @@ function determineTakeOrDiscard(game: Game): number {
   ) {
     return lowColInd;
   }
-
-  const unflippedColInd = randSelectEmptyColInd(game);
-
-  // Vals that next player wants, so avoid discarding cards with these values
-  const badVals = getBadVals(game);
 
   // If there's a column without flipped cards, take half-decent cards into it
   if (unflippedColInd) {

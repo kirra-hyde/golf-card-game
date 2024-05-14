@@ -380,4 +380,5 @@ export {
   getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex,  numberifyVal,
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
   getWinnerInd, getCardIndex, getVerticalInd, sortCards, getDrawnCardSpaceId,
+  getEmptyColInds,
 };
