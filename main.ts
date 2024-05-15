@@ -435,18 +435,15 @@ function determineTakeOrDiscard(game: Game): number {
     }
   }
 
-  // The current player's swappable cards in order of highest points to lowest
-  const sortedCards= sortCards(game);
-
   // Value and index of the worst swappable card that the next player doesn't want
-  const worstCard = getBestToSwap(game, sortedCards);
+  const worstCard = getBestToSwap(game);
 
   // For rare case where next player wants all swappable cards
   if (!worstCard) {
-    if (!(drawnVal in badVals) && chanceTrue(.95)) {
+    if (!(drawnVal in badVals) || chanceTrue(.05)) {
       return -1;
     } else {
-      return getIndInPinch(game, drawnPoints, sortedCards);
+      return getIndInPinch(game, drawnPoints);
     }
   }
 
@@ -461,10 +458,20 @@ function determineTakeOrDiscard(game: Game): number {
     }
   }
 
-  //TODO: more sophisticated
-  // If drawn card is wanted by next player, take it even if higher than you want
+  // If drawn card is wanted by next player, try to take it
   if (drawnVal in badVals && chanceTrue(.95)) {
-    return getCardIndex(game, worstCard)
+    const difference = drawnPoints - numberifyVal(worstCard.value);
+    if (
+      difference <= 2 ||
+      difference === 3 && chanceTrue(.95) ||
+      difference === 4 && chanceTrue(.9) ||
+      difference === 5 && chanceTrue(.8) ||
+      difference === 6 && chanceTrue(.75) ||
+      difference === 7 && chanceTrue(.65) ||
+      difference >= 8 && chanceTrue(.6)
+    ){
+      return getCardIndex(game, worstCard)
+    }
   }
 
   return -1;

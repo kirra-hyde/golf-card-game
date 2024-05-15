@@ -274,13 +274,18 @@ describe("computer AI helpers", function () {
 
   test("getIndInPinch", function() {
     testGame.currPlayer = testPlayer3;
+    testPlayer3.cards[3].flipped = true;
+    testPlayer3.cards[4].flipped = true;
+    testPlayer3.cards[5].flipped = true;
 
     Math.random = vi.fn(() => .6);
-    expect(getIndInPinch(testGame, 9, [testPlayer3.cards[5], testPlayer3.cards[3], testPlayer3.cards[4]])).toEqual(-1);
+    expect(getIndInPinch(testGame, 9)).toEqual(-1);
     Math.random = vi.fn(() => .8);
-    expect(getIndInPinch(testGame, 9, [testPlayer3.cards[5], testPlayer3.cards[3], testPlayer3.cards[4]])).toEqual(1);
+    expect(getIndInPinch(testGame, 9)).toEqual(1);
 
     Math.random = vi.fn(() => .6);
-    expect(getIndInPinch(testGame, 6, [testPlayer3.cards[5], testPlayer3.cards[3]])).toEqual(0);
+    expect(getIndInPinch(testGame, 6)).toEqual(1);
+    testPlayer3.cards[4].locked = true;
+    expect(getIndInPinch(testGame, 6)).toEqual(0);
   });
 });

@@ -317,48 +317,35 @@ function getBadVals(game: Game): Record<string, number> {
  *
  * Takes:
  * - game: a Game instance
- * - sorted: array of Cards. Defaults to the current Player's flipped, unlocked
- *   cards, sorted from high to low point value
  * Returns: the Card that would be best to discard, if any.  If none, undefined.
  */
 
-function getBestToSwap(game: Game, srtd: Card[] = sortCards(game)): Card | undefined {
-  const sortedCards = srtd;
-
-  if (sortedCards.length < 1) {
-    return;
-  }
-
+function getBestToSwap(game: Game): Card | undefined {
+  const sortedCards = sortCards(game);
   // The next player wants cards with these values
   const badVals = getBadVals(game);
 
-  if (!(sortedCards[0].value in badVals) || chanceTrue(.05)) {
-    return sortedCards[0];
+  for (let card of sortedCards) {
+    if (!(card.value in badVals) || chanceTrue(.05)) {
+      return card;
+    }
   }
-
-  if (sortedCards.length >= 2) {
-    sortedCards.shift();
-    return getBestToSwap(game, sortedCards);
-  }
-  return;
 }
 
 /** Decide whether to take or discard the drawnCard when its not a good Card,
  *  but the next player wants it AND wants all the flipped, not locked Cards
  *
  * Takes:
- * - drawnPnt: number of the point value of the current Player's drawn Card
- * - srtdCrds: array cards, the current player's flipped, not locked cards
- *   sorted by point value
+ * - game: a Game instance
+ * - drawnPoints: number of the point value of the current Player's drawn Card
  * Returns: number of index to take drawnCard at, or -1 to discard it
  */
 
-function getIndInPinch(game: Game, drawnPnt: number, srtdCrds: Card[]): number {
-  if ((drawnPnt > 7 && chanceTrue(.75)) || srtdCrds.length < 1) {
+function getIndInPinch(game: Game, drawnPoints: number): number {
+  const bestCard = getBestCard(game)
+  if ((drawnPoints > 7 && chanceTrue(.75)) || !bestCard) {
     return -1;
   } else {
-    // Last card in sortedVals will have lowest point value
-    const bestCard = srtdCrds[srtdCrds.length - 1];
     // Take Card at index across from Card with lowest point value
     return getVerticalInd(game, bestCard);
   }
