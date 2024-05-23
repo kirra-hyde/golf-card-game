@@ -61,8 +61,25 @@ function showCard(card: Card, cardSpaceID: string): void {
   const $cardSpace = $(`#${cardSpaceID}`);
   $cardSpace.attr("src", card.image);
   $cardSpace.attr("alt", `front of card, a ${card.value}`);
+  const $flipper = $cardSpace.closest(".flipper");
+  $flipper.css("transition", "0s");
+  $flipper.css("transform", "rotateY(180deg)");
 }
 
+/** Show image of a card, with flip animation
+ *
+ * Takes:
+ * - card: Card instance, whose image will be shown
+ * - cardSpaceId: string of the id of the HTML element where image will be shown
+ */
+
+function flipCard(card: Card, cardSpaceID: string): void {
+  const $cardSpace = $(`#${cardSpaceID}`);
+  $cardSpace.attr("src", card.image);
+  $cardSpace.attr("alt", `front of card, a ${card.value}`);
+  const $flipper = $cardSpace.closest(".flipper");
+  $flipper.css("transform", "rotateY(180deg)");
+}
 
 /** Remove image of card from discard pile
  *
@@ -112,8 +129,8 @@ function makeUnclickable(
          game: Game, inds: number[], player: Player = game.currPlayer): void {
   const id1 = getCardSpaceId(inds[0], game, player);
   const id2 = getCardSpaceId(inds[1], game, player);
-  $(`#${id1}`).removeClass("clickable");
-  $(`#${id2}`).removeClass("clickable");
+  $(`#${id1}`).closest(".cards").removeClass("clickable");
+  $(`#${id2}`).closest(".cards").removeClass("clickable");
 }
 
 /** Show round scores and cumulative scores, for end of round
@@ -182,15 +199,21 @@ function makeScoreMessage(scores: number[], game: Game): string {
  * - Give HTML elements for main player cards classes "clickable" and "flippable"
  */
 
-function resetCardArea(): void {
+async function resetCardArea(): Promise<void> {
   console.log("in resetCardArea");
 
   const $cards = $(".cards");
-  $cards.attr("src", cardBack);
-  $cards.attr("alt", "back of card");
+  $cards.find("img").attr("src", cardBack);
+  $cards.find("img").attr("alt", "back of card");
 
-  const $mainPlayerCards = $("#p1 img");
+  const $mainPlayerCards = $("#p1 .cards");
   $mainPlayerCards.addClass("clickable flippable");
+
+  const $flipper = $(".flipper");
+  $flipper.css("transition", "0s");
+  $flipper.css("transform", "rotateY(0deg)");
+  await tinyPause();
+  $flipper.css("transition", "0.6s");
 
   $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
@@ -302,7 +325,7 @@ function tinyPause(): Promise<void> {
 }
 
 export {
-  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
+  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace, flipCard,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
   updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
   showScores, showEndScreen, boldenName, unboldenName, tinyPause,

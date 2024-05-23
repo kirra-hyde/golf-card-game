@@ -1,12 +1,11 @@
 import { Game, Player, Card } from "./models.js";
 import {
-  randSelectEmptyColInd, getIndFromCardSpaceId, getCardSpaceId, getPlayerIndex,
+  randSelectEmptyColInd, getIndFromCardSpaceId, getCardSpaceId, getVerticalInd,
   getDrawnCardSpaceId, chanceTrue, checkForMatch, getNextPlayer, numberifyVal,
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, getCardIndex,
-  getVerticalInd, sortCards,
 } from "./utilities.js";
 import {
-  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace,
+  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace, flipCard,
   clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
   updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
   showScores, showEndScreen, boldenName, unboldenName, tinyPause
@@ -66,15 +65,17 @@ startForm.addEventListener("submit", handleGame);
 
 async function startRound(game: Game): Promise<void> {
   console.log("In main: startRound");
+  await shortPause();
   showDealMessage(game);
   await game.dealGame();
+  await shortPause();
   showCard(game.topDiscard as Card, "discards");
 
+  await shortPause();
   for (let player of game.players.slice(1)) {
     flip(game, randSelectEmptyColInd(game, player) as number, player);
     flip(game, randSelectEmptyColInd(game, player) as number, player);
   }
-  await shortPause();
   showFlipMessage();
   await setupFlipListeners(game);
   await setupFlipListeners(game);
@@ -102,7 +103,7 @@ async function endRound(game: Game): Promise<void> {
       const ind = getCardIndex(game, card, player);
       const verticalInd = getVerticalInd(game, card, player);
       if (!card.flipped) {
-        showCard(card, getCardSpaceId(ind, game, player));
+        flipCard(card, getCardSpaceId(ind, game, player));
       }
       if (card.value !== player.cards[verticalInd].value) {
         score += numberifyVal(card.value);
@@ -147,7 +148,8 @@ function setupFlipListeners(game: Game): Promise<void> {
 
     $mainPlayerCardsArea.on("click", ".flippable", function (evt) {
       $mainPlayerCardsArea.off();
-      const $cardSpace = $(evt.target);
+      const $cardSpace = $(evt.target).parent().prev().children();
+      console.log("What is $cardSpace?:", $cardSpace);
       const id = $cardSpace.attr("id") as string;
       flip(game, getIndFromCardSpaceId(id), game.players[0]);
       resolve();
@@ -162,9 +164,9 @@ function setupNewRoundListener(): Promise<void> {
 
   return new Promise((resolve) => {
 
-    $cardsArea.on("click", function () {
+    $cardsArea.on("click", async function () {
       $cardsArea.off();
-      resetCardArea();
+      await resetCardArea();
       resolve();
     });
   });
@@ -214,7 +216,14 @@ function setupFlipOrDrawListeners(): Promise<string> {
   return new Promise((resolve) => {
     $cardsArea.on("click", ".flippable, #discards, #deck", function (evt) {
       $cardsArea.off();
-      const id = $(evt.target).attr("id") as string;
+      const $target = $(evt.target);
+      let id: string;
+      if ($target.is(".pic")) {
+        id = $target.attr("id") as string;
+      } else {
+        const $cardSpace = $target.parent().prev().children();
+        id = $cardSpace.attr("id") as string;
+      }
       resolve(id);
     });
   });
@@ -236,8 +245,14 @@ function setupTakeOrDiscardListeners(): Promise<string> {
     $cardsArea.on("click", ".clickable", function (evt) {
       $cardsArea.off();
       $deck.addClass("clickable");
-      const id = $(evt.target).attr("id") as string;
-
+      const $target = $(evt.target);
+      let id: string;
+      if ($target.is(".pic")) {
+        id = $target.attr("id") as string;
+      } else {
+        const $front= $target.closest(".flipper").find(".front").children();
+        id = $front.attr("id") as string;
+      }
       resolve(id);
     });
   });
@@ -254,7 +269,8 @@ function setupTakeListeners(): Promise<string> {
   return new Promise((resolve) => {
 
     $mainPlayerCardsArea.on("click", ".clickable", function (evt) {
-      const id = $(evt.target).attr("id") as string;
+      const $front= $(evt.target).closest(".flipper").find(".front").children();
+      const id = $front.attr("id") as string;
 
       resolve(id);
     });
@@ -503,11 +519,11 @@ function flip(game: Game, ind: number, player: Player = game.currPlayer): void {
   const lockedInds = game.lockCards(ind, player);
 
   const cardSpaceId = getCardSpaceId(ind, game, player);
-  showCard(player.cards[ind], cardSpaceId);
+  flipCard(player.cards[ind], cardSpaceId);
 
   // If the card flipped is the main player's, update classes
   if (player === game.players[0]) {
-    $(`#${cardSpaceId}`).removeClass("flippable");
+    $(`#${cardSpaceId}`).closest(".cards").removeClass("flippable");
     if (lockedInds) {
       makeUnclickable(game, lockedInds, player);
     }
@@ -579,7 +595,7 @@ async function takeDrawnCard(game: Game, cardInd: number): Promise<void> {
   showCard(card, cardSpaceId);
 
   if (game.currPlayer === game.players[0]) {
-    $(`#${cardSpaceId}`).removeClass("flippable");
+    $(`#${cardSpaceId}`).closest(".cards").removeClass("flippable");
     if (inds) {
       makeUnclickable(game, inds);
     }
