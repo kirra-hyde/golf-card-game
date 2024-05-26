@@ -36,7 +36,7 @@ const $finalScores = $("#final-scores");
 function showCardsArea(): string {
   const mainPlayerName = $nameField.val() || "You";
   $startScreen.hide();
-  $cardsArea.show();
+  $cardsArea.css("display", "grid");
   $nameSpace.text(mainPlayerName);
   return mainPlayerName;
 }
