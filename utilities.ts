@@ -142,7 +142,7 @@ function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
  *
  * Takes:
  * - game: a Game instance
- * - card: a Card instace
+ * - card: a Card instance
  * Returns: number, representing the card's index
  */
 

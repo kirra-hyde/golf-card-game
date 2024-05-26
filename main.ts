@@ -148,8 +148,7 @@ function setupFlipListeners(game: Game): Promise<void> {
 
     $mainPlayerCardsArea.on("click", ".flippable", function (evt) {
       $mainPlayerCardsArea.off();
-      const $cardSpace = $(evt.target).parent().prev().children();
-      console.log("What is $cardSpace?:", $cardSpace);
+      const $cardSpace = $(evt.target).prev();
       const id = $cardSpace.attr("id") as string;
       flip(game, getIndFromCardSpaceId(id), game.players[0]);
       resolve();
@@ -218,11 +217,11 @@ function setupFlipOrDrawListeners(): Promise<string> {
       $cardsArea.off();
       const $target = $(evt.target);
       let id: string;
-      if ($target.is(".pic")) {
+      if ($target.is(".pile")) {
         id = $target.attr("id") as string;
       } else {
-        const $cardSpace = $target.parent().prev().children();
-        id = $cardSpace.attr("id") as string;
+        const $front= $target.prev();
+        id = $front.attr("id") as string;
       }
       resolve(id);
     });
@@ -247,10 +246,10 @@ function setupTakeOrDiscardListeners(): Promise<string> {
       $deck.addClass("clickable");
       const $target = $(evt.target);
       let id: string;
-      if ($target.is(".pic")) {
+      if ($target.is(".pile")) {
         id = $target.attr("id") as string;
       } else {
-        const $front= $target.closest(".flipper").find(".front").children();
+        const $front= $target.closest(".card").find(".front");
         id = $front.attr("id") as string;
       }
       resolve(id);
@@ -269,9 +268,8 @@ function setupTakeListeners(): Promise<string> {
   return new Promise((resolve) => {
 
     $mainPlayerCardsArea.on("click", ".clickable", function (evt) {
-      const $front= $(evt.target).closest(".flipper").find(".front").children();
+      const $front= $(evt.target).closest(".card").find(".front");
       const id = $front.attr("id") as string;
-
       resolve(id);
     });
   });
@@ -369,7 +367,7 @@ function determineDrawOrFlip(game: Game):
   ) {
 
     // An unflipped column is the best place to take a card
-    if (unflippedColInd) {
+    if (unflippedColInd || unflippedColInd === 0) {
       return ["drawDiscard", unflippedColInd];
     }
 
@@ -388,7 +386,7 @@ function determineDrawOrFlip(game: Game):
   }
 
   // Don't flip a card if doing so will lock a column
-  if (!unflippedColInd) {
+  if (!unflippedColInd && unflippedColInd !== 0) {
     return "drawDeck";
   }
 
@@ -433,7 +431,7 @@ function determineTakeOrDiscard(game: Game): number {
   }
 
   // If there's a column without flipped cards, take half-decent cards into it
-  if (unflippedColInd) {
+  if (unflippedColInd || unflippedColInd === 0) {
     if (
       drawnPoints <= 2 ||
       (drawnPoints === 3 && chanceTrue(.98)) ||
@@ -523,7 +521,7 @@ function flip(game: Game, ind: number, player: Player = game.currPlayer): void {
 
   // If the card flipped is the main player's, update classes
   if (player === game.players[0]) {
-    $(`#${cardSpaceId}`).closest(".cards").removeClass("flippable");
+    $(`#${cardSpaceId}`).closest(".card").removeClass("flippable");
     if (lockedInds) {
       makeUnclickable(game, lockedInds, player);
     }
@@ -595,7 +593,7 @@ async function takeDrawnCard(game: Game, cardInd: number): Promise<void> {
   showCard(card, cardSpaceId);
 
   if (game.currPlayer === game.players[0]) {
-    $(`#${cardSpaceId}`).closest(".cards").removeClass("flippable");
+    $(`#${cardSpaceId}`).closest(".card").removeClass("flippable");
     if (inds) {
       makeUnclickable(game, inds);
     }

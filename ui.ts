@@ -61,7 +61,7 @@ function showCard(card: Card, cardSpaceID: string): void {
   const $cardSpace = $(`#${cardSpaceID}`);
   $cardSpace.attr("src", card.image);
   $cardSpace.attr("alt", `front of card, a ${card.value}`);
-  const $flipper = $cardSpace.closest(".flipper");
+  const $flipper = $cardSpace.closest(".card");
   $flipper.css("transition", "0s");
   $flipper.css("transform", "rotateY(180deg)");
 }
@@ -77,7 +77,7 @@ function flipCard(card: Card, cardSpaceID: string): void {
   const $cardSpace = $(`#${cardSpaceID}`);
   $cardSpace.attr("src", card.image);
   $cardSpace.attr("alt", `front of card, a ${card.value}`);
-  const $flipper = $cardSpace.closest(".flipper");
+  const $flipper = $cardSpace.closest(".card");
   $flipper.css("transform", "rotateY(180deg)");
 }
 
@@ -129,8 +129,8 @@ function makeUnclickable(
          game: Game, inds: number[], player: Player = game.currPlayer): void {
   const id1 = getCardSpaceId(inds[0], game, player);
   const id2 = getCardSpaceId(inds[1], game, player);
-  $(`#${id1}`).closest(".cards").removeClass("clickable");
-  $(`#${id2}`).closest(".cards").removeClass("clickable");
+  $(`#${id1}`).closest(".card").removeClass("clickable");
+  $(`#${id2}`).closest(".card").removeClass("clickable");
 }
 
 /** Show round scores and cumulative scores, for end of round
@@ -202,18 +202,17 @@ function makeScoreMessage(scores: number[], game: Game): string {
 async function resetCardArea(): Promise<void> {
   console.log("in resetCardArea");
 
-  const $cards = $(".cards");
+  const $cards = $(".card");
   $cards.find("img").attr("src", cardBack);
   $cards.find("img").attr("alt", "back of card");
 
-  const $mainPlayerCards = $("#p1 .cards");
+  const $mainPlayerCards = $("#p1 .card");
   $mainPlayerCards.addClass("clickable flippable");
 
-  const $flipper = $(".flipper");
-  $flipper.css("transition", "0s");
-  $flipper.css("transform", "rotateY(0deg)");
+  $cards.css("transition", "0s");
+  $cards.css("transform", "rotateY(0deg)");
   await tinyPause();
-  $flipper.css("transition", "0.6s");
+  $cards.css("transition", "0.6s");
 
   $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
