@@ -144,10 +144,12 @@ async function endRound(game: Game): Promise<void> {
 function setupFlipListeners(game: Game): Promise<void> {
   console.log("In main: mainPlayerFlip");
 
+  $(".flippable").css("cursor", "pointer");
   return new Promise((resolve) => {
 
     $mainPlayerCardsArea.on("click", ".flippable", function (evt) {
       $mainPlayerCardsArea.off();
+      $(".flippable").css("cursor", "default");
       const $cardSpace = $(evt.target).prev();
       const id = $cardSpace.attr("id") as string;
       flip(game, getIndFromCardSpaceId(id), game.players[0]);
@@ -212,9 +214,12 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
 
 function setupFlipOrDrawListeners(): Promise<string> {
   console.log("In main: setupFlipOrDrawListeners");
+
+  $(".flippable, #discards, #deck").css("cursor", "pointer");
   return new Promise((resolve) => {
     $cardsArea.on("click", ".flippable, #discards, #deck", function (evt) {
       $cardsArea.off();
+      $(".flippable, #discards, #deck").css("cursor", "default");
       const $target = $(evt.target);
       let id: string;
       if ($target.is(".pile")) {
@@ -238,11 +243,12 @@ function setupTakeOrDiscardListeners(): Promise<string> {
 
   // Drawn cards can't be returned to deck, so make deck unclickable for now
   $deck.removeClass("clickable");
-
+  $(".clickable").css("cursor", "pointer");
   return new Promise((resolve) => {
 
     $cardsArea.on("click", ".clickable", function (evt) {
       $cardsArea.off();
+      $(".clickable").css("cursor", "default");
       $deck.addClass("clickable");
       const $target = $(evt.target);
       let id: string;
@@ -265,9 +271,12 @@ function setupTakeOrDiscardListeners(): Promise<string> {
 function setupTakeListeners(): Promise<string> {
   console.log("In main: setupTakeListeners");
 
+  $("#p1 .clickable").css("cursor", "pointer");
   return new Promise((resolve) => {
 
     $mainPlayerCardsArea.on("click", ".clickable", function (evt) {
+      $mainPlayerCardsArea.off();
+      $("#p1 .clickable").css("cursor", "default");
       const $front= $(evt.target).closest(".card").find(".front");
       const id = $front.attr("id") as string;
       resolve(id);

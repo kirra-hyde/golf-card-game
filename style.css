@@ -196,7 +196,7 @@ body {
 .card {
   perspective: 1000px;
   position: relative;
-  transition: 0.6s;
+  transition: transform 0.6s;
   transform-style: preserve-3d;
   width: 90%;
 }
