@@ -206,8 +206,6 @@ body {
 .card-space {
   width: 90%;
   position: relative;
-  border: 1px solid gray;
-  border-radius: 5%;
 }
 
 .pile {

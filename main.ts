@@ -9,6 +9,7 @@ import {
   showTurnMessage, updatePicsOnReshuffle, makeUnclickable, resetCardArea,
   shortPause, longPause, showScores, showEndScreen, boldenName, unboldenName,
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
+  updateDiscardPile,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -558,11 +559,16 @@ async function drawFromDiscards(game: Game): Promise<void> {
 
 async function drawFromDeck(game: Game): Promise<void> {
   console.log("In main: drawFromDeck");
+  let reshuffled = false;
   if (game.deckIsEmpty === true) {
     updatePicsOnReshuffle();
+    reshuffled = true;
   }
   await game.currPlayer.drawFromDeck(game);
   await takeDeckUI(game);
+  if (!reshuffled) {
+    updateDiscardPile();
+  }
 }
 
 /** Have current Player discard their drawn card, and update images accordingly

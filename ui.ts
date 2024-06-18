@@ -9,6 +9,7 @@ import deck from "./images/deck.png";
 import discardPile from "./images/discards.png";
 import emptyDeck from "./images/empty_deck.png";
 import cardBack from "./images/back.png";
+import blank from "./images/blank.png";
 
 const $startScreen = $("#start-screen");
 const $cardsArea = $("#cards-area");
@@ -103,7 +104,6 @@ async function takeDeckUI(game: Game) {
   $deckCard.hide();
 
   clearDeckIfEmpty(game);
-  updateDiscardPile();
 }
 
 async function discardDrawnUI(game: Game) {
@@ -145,6 +145,8 @@ function showCardsArea(): string {
 function updatePicsOnReshuffle(): void {
   $discards.attr("src", discardsPlaceholder);
   $discards.attr("alt", "discards go here");
+  $topDiscard.attr("src", blank);
+  $topDiscard.removeAttr("alt");
   $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
 }
@@ -474,4 +476,5 @@ export {
   showImg, updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause,
   longPause, showScores, showEndScreen, boldenName, unboldenName, tinyPause,
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
+  updateDiscardPile,
 };
