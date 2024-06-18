@@ -116,6 +116,23 @@ function getCardSpaceId(
   return `p${playerInd + 1}-${cardInd}`;
 }
 
+/** Get jQuery object of a player's card from its index
+ *
+ * Takes:
+ * - cardInd: a number representing a Card's index
+ * - game: a Game instance
+ * - player: a Player instance (defaults to current player)
+ *
+ * Returns: jQuery object of card element
+ */
+
+function getCardFromInd(
+  game: Game, cardInd: number, player: Player = game.currPlayer
+): JQuery<HTMLElement> {
+  const id = getCardSpaceId(cardInd, game, player);
+  return $(`#${id}`);
+}
+
 /** Get the id of the drawn card space HTML element of the current player
  *
  * Takes: game, a Game instance
@@ -124,6 +141,17 @@ function getCardSpaceId(
 
 function getDrawnCardSpaceId(game: Game): string {
   return `drawn-card-${getPlayerIndex(game) + 1}`;
+}
+
+/** Get jQuery object of drawn card space of the current player
+ *
+ * Takes: game, a Game instance
+ * Returns: jQuery object of a drawn card space element
+ */
+
+function getDrawnCard(game: Game): JQuery<HTMLElement> {
+  const id = getDrawnCardSpaceId(game);
+  return $(`#${id}`);
 }
 
 /** Get the index of a Player in a Game's players array
@@ -183,7 +211,7 @@ function getVerticalInd(game: Game, card: Card, player: Player = game.currPlayer
  */
 
 function randSelectEmptyColInd(game: Game, player: Player = game.currPlayer):
-number | undefined {
+  number | undefined {
   const unflippedColInds = getEmptyColInds(game, player);
 
   if (unflippedColInds.length < 2) {
@@ -208,7 +236,7 @@ function getEmptyColInds(game: Game, player: Player = game.currPlayer): number[]
   const cards = player.cards;
 
   for (let i = 0; i < 3; i++) {
-    if (!cards[i].flipped && !cards[i+3].flipped) {
+    if (!cards[i].flipped && !cards[i + 3].flipped) {
       bestInds.push(i);
       bestInds.push(i + 3);
     }
@@ -342,7 +370,7 @@ function getBestToSwap(game: Game): Card | undefined {
  */
 
 function getIndInPinch(game: Game, drawnPoints: number): number {
-  const bestCard = getBestCard(game)
+  const bestCard = getBestCard(game);
   if ((drawnPoints > 7 && chanceTrue(.75)) || !bestCard) {
     return -1;
   } else {
@@ -364,8 +392,8 @@ function chanceTrue(chance: number): boolean {
 
 export {
   randSelectPlayer, getNextPlayer, randSelectEmptyColInd, getIndFromCardSpaceId,
-  getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex,  numberifyVal,
+  getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex, numberifyVal,
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
-  getWinnerInd, getCardIndex, getVerticalInd, sortCards, getDrawnCardSpaceId,
-  getEmptyColInds,
+  getWinnerInd, getCardIndex, getVerticalInd, getDrawnCardSpaceId,
+  getCardFromInd, getDrawnCard,
 };

@@ -1,14 +1,14 @@
 import { Game, Player, Card } from "./models.js";
 import {
   randSelectEmptyColInd, getIndFromCardSpaceId, getCardSpaceId, getVerticalInd,
-  getDrawnCardSpaceId, chanceTrue, checkForMatch, getNextPlayer, numberifyVal,
-  getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, getCardIndex,
+  chanceTrue, checkForMatch, getNextPlayer, numberifyVal, getLowColPoints,
+  getBadVals, getBestToSwap, getIndInPinch, getCardIndex,
 } from "./utilities.js";
 import {
-  showCardsArea, showCard, clearDrawnCardSpace, clearTopDiscardSpace, flipCard,
-  clearDeckIfEmpty, showFlipMessage, showDealMessage, showTurnMessage,
-  updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause, longPause,
-  showScores, showEndScreen, boldenName, unboldenName, tinyPause
+  showCardsArea, showImg, flipCard, showFlipMessage, showDealMessage, tinyPause,
+  showTurnMessage, updatePicsOnReshuffle, makeUnclickable, resetCardArea,
+  shortPause, longPause, showScores, showEndScreen, boldenName, unboldenName,
+  drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -69,7 +69,9 @@ async function startRound(game: Game): Promise<void> {
   showDealMessage(game);
   await game.dealGame();
   await shortPause();
-  showCard(game.topDiscard as Card, "discards");
+  $(".card").show();
+  await shortPause();
+  showImg(game.topDiscard as Card, "top-discard");
 
   await shortPause();
   for (let player of game.players.slice(1)) {
@@ -186,8 +188,8 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
 
   const drawOrFlipChoice = await setupFlipOrDrawListeners();
 
-  if (drawOrFlipChoice === "discards") {
-    drawFromDiscards(game);
+  if (drawOrFlipChoice === "top-discard") {
+    await drawFromDiscards(game);
     const id = await setupTakeListeners();
     await takeDrawnCard(game, getIndFromCardSpaceId(id));
     return;
@@ -200,7 +202,7 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
 
   const takeOrDiscardChoice = await setupTakeOrDiscardListeners();
 
-  if (takeOrDiscardChoice === "discards") {
+  if (takeOrDiscardChoice === "top-discard") {
     await discardDrawnCard(game);
   } else {
     await takeDrawnCard(game, getIndFromCardSpaceId(takeOrDiscardChoice));
@@ -215,17 +217,17 @@ async function handleMainPlayerTurn(game: Game): Promise<void> {
 function setupFlipOrDrawListeners(): Promise<string> {
   console.log("In main: setupFlipOrDrawListeners");
 
-  $(".flippable, #discards, #deck").css("cursor", "pointer");
+  $(".flippable, #top-discard, #deck").css("cursor", "pointer");
   return new Promise((resolve) => {
-    $cardsArea.on("click", ".flippable, #discards, #deck", function (evt) {
+    $cardsArea.on("click", ".flippable, #top-discard, #deck", function (evt) {
       $cardsArea.off();
-      $(".flippable, #discards, #deck").css("cursor", "default");
+      $(".flippable, #top-discard, #deck").css("cursor", "default");
       const $target = $(evt.target);
       let id: string;
-      if ($target.is(".pile")) {
+      if ($target.is(".takeable")) {
         id = $target.attr("id") as string;
       } else {
-        const $front= $target.prev();
+        const $front = $target.prev();
         id = $front.attr("id") as string;
       }
       resolve(id);
@@ -252,10 +254,10 @@ function setupTakeOrDiscardListeners(): Promise<string> {
       $deck.addClass("clickable");
       const $target = $(evt.target);
       let id: string;
-      if ($target.is(".pile")) {
-        id = $target.attr("id") as string;
+      if ($target.is("#top-discard")) {
+        id = "top-discard";
       } else {
-        const $front= $target.closest(".card").find(".front");
+        const $front = $target.closest(".card").find(".front");
         id = $front.attr("id") as string;
       }
       resolve(id);
@@ -277,7 +279,7 @@ function setupTakeListeners(): Promise<string> {
     $mainPlayerCardsArea.on("click", ".clickable", function (evt) {
       $mainPlayerCardsArea.off();
       $("#p1 .clickable").css("cursor", "default");
-      const $front= $(evt.target).closest(".card").find(".front");
+      const $front = $(evt.target).closest(".card").find(".front");
       const id = $front.attr("id") as string;
       resolve(id);
     });
@@ -308,7 +310,7 @@ async function handleComputerTurn(game: Game): Promise<void> {
     return;
   }
   if (drawOrFlipAction[0] === "drawDiscard") {
-    drawFromDiscards(game);
+    await drawFromDiscards(game);
     const indToTakeCard = drawOrFlipAction[1] as number;
     await longPause();
     await takeDrawnCard(game, indToTakeCard);
@@ -492,8 +494,8 @@ function determineTakeOrDiscard(game: Game): number {
       difference === 6 && chanceTrue(.75) ||
       difference === 7 && chanceTrue(.65) ||
       difference >= 8 && chanceTrue(.6)
-    ){
-      return getCardIndex(game, worstCard)
+    ) {
+      return getCardIndex(game, worstCard);
     }
   }
 
@@ -543,12 +545,10 @@ function flip(game: Game, ind: number, player: Player = game.currPlayer): void {
  * Takes: game, a Game instance
  */
 
-function drawFromDiscards(game: Game): void {
+async function drawFromDiscards(game: Game): Promise<void> {
   console.log("In main: drawFromDiscards");
   game.currPlayer.drawFromDiscards(game);
-  clearTopDiscardSpace(game);
-  const card = game.currPlayer.drawnCard as Card;
-  showCard(card, getDrawnCardSpaceId(game));
+  await drawDiscardUI(game);
 }
 
 /** Have current player draw Card from deck, and update images accordingly
@@ -562,9 +562,7 @@ async function drawFromDeck(game: Game): Promise<void> {
     updatePicsOnReshuffle();
   }
   await game.currPlayer.drawFromDeck(game);
-  const card = game.currPlayer.drawnCard as Card;
-  showCard(card, getDrawnCardSpaceId(game));
-  clearDeckIfEmpty(game);
+  await takeDeckUI(game);
 }
 
 /** Have current Player discard their drawn card, and update images accordingly
@@ -575,9 +573,7 @@ async function drawFromDeck(game: Game): Promise<void> {
 async function discardDrawnCard(game: Game): Promise<void> {
   console.log("In main: discardDrawnCard");
   await game.currPlayer.discardDrawnCard(game);
-
-  showCard(game.topDiscard as Card, "discards");
-  clearDrawnCardSpace(game);
+  await discardDrawnUI(game);
 }
 
 /** Take a drawn card
@@ -594,17 +590,6 @@ async function takeDrawnCard(game: Game, cardInd: number): Promise<void> {
   console.log("In main: takeDrawnCard");
   await game.currPlayer.takeDrawnCard(cardInd, game);
   const inds = game.lockCards(cardInd);
-
-  showCard(game.topDiscard as Card, "discards");
-  clearDrawnCardSpace(game);
-  const card = game.currPlayer.cards[cardInd];
-  const cardSpaceId = getCardSpaceId(cardInd, game);
-  showCard(card, cardSpaceId);
-
-  if (game.currPlayer === game.players[0]) {
-    $(`#${cardSpaceId}`).closest(".card").removeClass("flippable");
-    if (inds) {
-      makeUnclickable(game, inds);
-    }
-  }
+  await takeDrawnUI(game, cardInd);
+  makeUnflippable(game, cardInd, inds);
 }
