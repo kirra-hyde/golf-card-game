@@ -159,16 +159,27 @@ function getDrawnCard(game: Game): JQuery<HTMLElement> {
   return $(`#${id}`);
 }
 
-/** Get jQuery object of same area as drawn card of the current player
+/** Get jQuery object of background img of drawn card of the current player
+ *
+ * Takes: game, a Game instance
+ * Returns: jQuery object of a drawn card space element
+ */
+
+function getDrawnCardBackground(game: Game): JQuery<HTMLElement> {
+
+  const $card = getDrawnCard(game);
+  return $card.prev();
+}
+
+/** Get jQuery object of area around drawn card of the current player
  *
  * Takes: game, a Game instance
  * Returns: jQuery object of a drawn card space element
  */
 
 function getDrawnCardArea(game: Game): JQuery<HTMLElement> {
-  const id = getDrawnCardSpaceId(game);
-  const $card = $(`#${id}`);
-  return $card.prev();
+  const $card = getDrawnCard(game);
+  return $card.parent();
 }
 
 /** Get the index of a Player in a Game's players array
@@ -446,6 +457,6 @@ export {
   getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex, numberifyVal,
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
   getWinnerInd, getCardIndex, getVerticalInd, getDrawnCardSpaceId, getDrawnCard,
-  getCardFromInd, calcMoveDistance, getDrawnCardArea, calcMoveDistanceWithRotate,
-  sortCards, getEmptyColInds,
+  getCardFromInd, calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
+  sortCards, getEmptyColInds, getDrawnCardArea,
 };

@@ -1,7 +1,8 @@
 import { Game, Card, Player } from "./models.js";
 import {
   getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd, getDrawnCard,
-  getCardFromInd, calcMoveDistance, getDrawnCardArea, calcMoveDistanceWithRotate,
+  getCardFromInd, calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
+  getDrawnCardArea,
 } from "./utilities.js";
 
 import discardsPlaceholder from "./images/discards_placeholder.png";
@@ -42,7 +43,7 @@ const TAKE_TIME = 500;
 
 async function drawDiscardUI(game: Game): Promise<void> {
   const fromOffset = $discards.offset() as JQuery.Coordinates;
-  const toOffset = getDrawnCardArea(game).offset() as JQuery.Coordinates;
+  const toOffset = getDrawnCardBackground(game).offset() as JQuery.Coordinates;
   const {top, left} = calcMoveDistance(fromOffset, toOffset);
 
   $topDiscard.css("--horizontal-distance", `${left}px`);
@@ -66,26 +67,37 @@ async function drawDiscardUI(game: Game): Promise<void> {
 
 async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
 
-  const card = game.currPlayer.cards[cardInd];
-  const cardSpaceId = getCardSpaceId(cardInd, game);
-  const $handCard = getCardFromInd(game, cardInd).closest(".card");
-  const $drawnSpot = getDrawnCard(game);
+  // Animation 1: discard card from the hand
 
-  const drawnCoords = getDrawnCardArea(game).offset() as JQuery.Coordinates;
+  // Element to be animated
+  const $handCard = getCardFromInd(game, cardInd).closest(".card");
+  // Ancestors of $handCard. Their z-index needs raised so $handCard stays visible through animation
+  const $handCardArea = $handCard.parent();
+  const $playerCardsArea = $handCardArea.parent();
+
+  const $drawnCardBackground = getDrawnCardBackground(game);
+  const drawnCoords = $drawnCardBackground.offset() as JQuery.Coordinates;
   const handCoords = $handCard.offset() as JQuery.Coordinates;
   const discardCoords = $discards.offset() as JQuery.Coordinates;
 
-  const takeDistance = calcMoveDistanceWithRotate(drawnCoords, handCoords, game);
-
-  $drawnSpot.css("--horizontal-distance", `${takeDistance.left}px`);
-  $drawnSpot.css("--vertical-distance", `${takeDistance.top}px`);
-  $drawnSpot.css("animation", `take-card ${TAKE_TIME}ms`);
+  // Used if card being moved is face-down to give it an image before moving it
+  // Image is added to face down side, but becomes visible as card flips while moving
+  const cardSpaceId = getCardSpaceId(cardInd, game);
 
   const discardDistance = calcMoveDistanceWithRotate(handCoords, discardCoords, game);
+
+  // Adjust z-indexes so that $handcard stays visible through animation
+  $handCardArea.css("z-index", "6");
+  $playerCardsArea.css("z-index", "5");
+  $("#middle").css("z-index", "0");
+  $("#discards-area").css("z-index", "1");
+  $discards.css("z-index", "2");
+  $topDiscard.css("z-index", "3");
 
   $handCard.css("--horizontal-distance", `${discardDistance.left}px`);
   $handCard.css("--vertical-distance", `${discardDistance.top}px`);
 
+  // The animation
   if (!$handCard.is(".face-up")) {
     showImg(game.topDiscard as Card, cardSpaceId);
     $handCard.css("animation", `take-and-flip-card ${TAKE_TIME}ms`);
@@ -94,12 +106,51 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
   }
   await takePause();
 
+  // Set images to how they should be after animation
   showImg(game.topDiscard as Card, "top-discard");
-  clearDrawnCardSpace(game);
-  showCard(card, cardSpaceId);
+  $handCard.hide();
 
+  // Clear all the z-index changes
   $handCard.css("animation", "");
-  $drawnSpot.css("animation", "");
+  $handCardArea.css("z-index", "");
+  $discards.css("z-index", "");
+  $topDiscard.css("z-index", "");
+  $handCardArea.css("z-index", "");
+  $playerCardsArea.css("z-index", "");
+  $("#middle").css("z-index", "");
+  $("#discards-area").css("z-index", "");
+
+
+  // Animation 2: Take drawn card into hand
+  const card = game.currPlayer.cards[cardInd];
+
+  // Element to be animated
+  const $drawnCard = getDrawnCard(game);
+
+  const takeDistance = calcMoveDistanceWithRotate(drawnCoords, handCoords, game);
+
+  // Adjust the z-indexes so the drawn card stays visible through animation
+  const $drawnCardArea = getDrawnCardArea(game);
+  $drawnCardArea.css("z-index", "4");
+  $drawnCardBackground.css("z-index", "5");
+  $drawnCard.css("z-index", "6");
+
+
+  // The animation
+  $drawnCard.css("--horizontal-distance", `${takeDistance.left}px`);
+  $drawnCard.css("--vertical-distance", `${takeDistance.top}px`);
+  $drawnCard.css("animation", `take-card ${TAKE_TIME}ms`);
+
+  await takePause();
+
+  // Set images to how they should be after animation and clear z-indexes
+  $handCard.show();
+  showCard(card, cardSpaceId);
+  clearDrawnCardSpace(game);
+  $drawnCard.css("animation", "");
+  $drawnCardArea.css("z-index", "");
+  $drawnCardBackground.css("z-index", "");
+  $drawnCard.css("z-index", "");
 }
 
 /** Update UI after drawing from the deck
@@ -113,7 +164,7 @@ async function takeDeckUI(game: Game) {
   showImg(card, "deck-card");
 
   const fromOffset = $deck.offset() as JQuery.Coordinates;
-  const toOffset = getDrawnCardArea(game).offset() as JQuery.Coordinates;
+  const toOffset = getDrawnCardBackground(game).offset() as JQuery.Coordinates;
   const { left, top } = calcMoveDistance(fromOffset, toOffset);
 
   $deckCard.css("--horizontal-distance", `${left}px`);
@@ -140,11 +191,13 @@ async function takeDeckUI(game: Game) {
 async function discardDrawnUI(game: Game) {
 
   const $card = getDrawnCard(game);
+  const $cardArea = $card.parent();
 
   const fromOffset = $card.offset() as JQuery.Coordinates;
   const toOffset = $discards.offset() as JQuery.Coordinates;
   const { left, top } = calcMoveDistanceWithRotate(fromOffset, toOffset, game);
 
+  $cardArea.css("z-index", "5");
   $card.css("--horizontal-distance", `${left}px`);
   $card.css("--vertical-distance", `${top}px`);
   $card.css("animation", `take-card ${TAKE_TIME}ms`);
@@ -155,6 +208,7 @@ async function discardDrawnUI(game: Game) {
   clearDrawnCardSpace(game);
 
   $card.css("animation", "");
+  $cardArea.css("z-index", "");
 }
 
 
