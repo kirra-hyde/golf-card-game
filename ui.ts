@@ -467,6 +467,8 @@ async function resetCardArea(): Promise<void> {
   $cards.find("img").attr("alt", "back of card");
   $cards.removeClass("face-up");
   $cards.css("transform", "rotateY(0deg)");
+  $cards.css("transition", "transform 0.6s");
+  await tinyPause();
 
   const $mainPlayerCards = $("#p1 .card");
   $mainPlayerCards.addClass("clickable flippable");
