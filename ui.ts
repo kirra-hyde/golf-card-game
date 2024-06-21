@@ -458,6 +458,8 @@ async function resetCardArea(): Promise<void> {
   console.log("in resetCardArea");
 
   const $cards = $(".card");
+  $discards.attr("src", discardsPlaceholder);
+  $discards.attr("alt", "discards go here");
   $cards.hide();
   $topDiscard.hide();
   $cards.find("img").attr("src", cardBack);
@@ -470,8 +472,6 @@ async function resetCardArea(): Promise<void> {
 
   $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
-  $discards.attr("src", discardsPlaceholder);
-  $discards.attr("alt", "discards go here");
   $topDiscard.removeAttr("src");
   $topDiscard.removeAttr("alt");
 
