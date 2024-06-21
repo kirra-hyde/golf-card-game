@@ -468,11 +468,6 @@ async function resetCardArea(): Promise<void> {
   const $mainPlayerCards = $("#p1 .card");
   $mainPlayerCards.addClass("clickable flippable");
 
-  // $cards.css("transition", "0s");
-
-  // await tinyPause();
-  // $cards.css("transition", "0.6s");
-
   $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
   $discards.attr("src", discardsPlaceholder);
