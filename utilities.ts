@@ -1,5 +1,10 @@
 import { Player, Game, Card } from "./models.js";
 
+type tPosition = {
+  left: number,
+  top: number;
+};
+
 /** Randomly choose Player from array of Players
  *
  * Takes: players, an array of Player instances
@@ -133,7 +138,7 @@ function getCardFromInd(
   return $(`#${id}`);
 }
 
-/** Get the id of the drawn card space HTML element of the current player
+/** Get the id of the drawn card HTML element of the current player
  *
  * Takes: game, a Game instance
  * Returns: string, the id of a drawn card space HTML element
@@ -143,7 +148,7 @@ function getDrawnCardSpaceId(game: Game): string {
   return `drawn-card-${getPlayerIndex(game) + 1}`;
 }
 
-/** Get jQuery object of drawn card space of the current player
+/** Get jQuery object of drawn card of the current player
  *
  * Takes: game, a Game instance
  * Returns: jQuery object of a drawn card space element
@@ -152,6 +157,18 @@ function getDrawnCardSpaceId(game: Game): string {
 function getDrawnCard(game: Game): JQuery<HTMLElement> {
   const id = getDrawnCardSpaceId(game);
   return $(`#${id}`);
+}
+
+/** Get jQuery object of same area as drawn card of the current player
+ *
+ * Takes: game, a Game instance
+ * Returns: jQuery object of a drawn card space element
+ */
+
+function getDrawnCardArea(game: Game): JQuery<HTMLElement> {
+  const id = getDrawnCardSpaceId(game);
+  const $card = $(`#${id}`);
+  return $card.prev();
 }
 
 /** Get the index of a Player in a Game's players array
@@ -195,6 +212,40 @@ function getVerticalInd(game: Game, card: Card, player: Player = game.currPlayer
   } else {
     return ind - 3;
   }
+}
+
+function calcMoveDistance(from: tPosition, to: tPosition): tPosition {
+  const left = to.left - from.left;
+  const top = to.top - from.top;
+  return { left, top };
+}
+
+function calcMoveDistanceWithRotate(from: tPosition, to: tPosition, game: Game): tPosition {
+  const left = to.left - from.left;
+  const top = to.top - from.top;
+  const playerInd = getPlayerIndex(game)
+  if (playerInd === 0) {
+    return { left, top };
+  }
+  if (playerInd === 1) {
+    return {
+      left: top,
+      top: -(left),
+    }
+  }
+  if (playerInd === 2) {
+    return {
+      left: -(left),
+      top: -(top),
+    }
+  }
+  if (playerInd === 3) {
+    return {
+      left: -(top),
+      top: left,
+    }
+  }
+  return { left, top };
 }
 
 /*******************************************************************************
@@ -394,6 +445,7 @@ export {
   randSelectPlayer, getNextPlayer, randSelectEmptyColInd, getIndFromCardSpaceId,
   getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex, numberifyVal,
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
-  getWinnerInd, getCardIndex, getVerticalInd, getDrawnCardSpaceId,
-  getCardFromInd, getDrawnCard,
+  getWinnerInd, getCardIndex, getVerticalInd, getDrawnCardSpaceId, getDrawnCard,
+  getCardFromInd, calcMoveDistance, getDrawnCardArea, calcMoveDistanceWithRotate,
+  sortCards, getEmptyColInds,
 };

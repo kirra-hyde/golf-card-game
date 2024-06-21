@@ -9,7 +9,7 @@ import {
   showTurnMessage, updatePicsOnReshuffle, makeUnclickable, resetCardArea,
   shortPause, longPause, showScores, showEndScreen, boldenName, unboldenName,
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
-  updateDiscardPile,
+  updateDiscardPile, dealUI
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -70,7 +70,8 @@ async function startRound(game: Game): Promise<void> {
   showDealMessage(game);
   await game.dealGame();
   await shortPause();
-  $(".card").show();
+
+  await dealUI(game);
   await shortPause();
   showImg(game.topDiscard as Card, "top-discard");
 

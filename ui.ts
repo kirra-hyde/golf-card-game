@@ -1,7 +1,7 @@
 import { Game, Card, Player } from "./models.js";
 import {
-  getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd,
-  getCardFromInd, getDrawnCard,
+  getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd, getDrawnCard,
+  getCardFromInd, calcMoveDistance, getDrawnCardArea, calcMoveDistanceWithRotate,
 } from "./utilities.js";
 
 import discardsPlaceholder from "./images/discards_placeholder.png";
@@ -37,19 +37,23 @@ const TAKE_TIME = 500;
 
 /** Update UI after drawing from discard pile
  *
- * - Move top discard card to drawn card spot
- * - Clear and hide top discard spot
- * - Show moved card in drawn card spot
- *
  * Takes: game, a Game instance
  */
 
 async function drawDiscardUI(game: Game): Promise<void> {
+  const fromOffset = $discards.offset() as JQuery.Coordinates;
+  const toOffset = getDrawnCardArea(game).offset() as JQuery.Coordinates;
+  const {top, left} = calcMoveDistance(fromOffset, toOffset);
+
+  $topDiscard.css("--horizontal-distance", `${left}px`);
+  $topDiscard.css("--vertical-distance", `${top}px`);
   $topDiscard.css("animation", `take-card ${TAKE_TIME}ms`);
+
   await takePause();
   clearTopDiscardSpace();
   const card = game.currPlayer.drawnCard as Card;
   showImg(card, getDrawnCardSpaceId(game));
+
   $topDiscard.css("animation", "");
 }
 
@@ -64,11 +68,24 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
 
   const card = game.currPlayer.cards[cardInd];
   const cardSpaceId = getCardSpaceId(cardInd, game);
-
+  const $handCard = getCardFromInd(game, cardInd).closest(".card");
   const $drawnSpot = getDrawnCard(game);
+
+  const drawnCoords = getDrawnCardArea(game).offset() as JQuery.Coordinates;
+  const handCoords = $handCard.offset() as JQuery.Coordinates;
+  const discardCoords = $discards.offset() as JQuery.Coordinates;
+
+  const takeDistance = calcMoveDistanceWithRotate(drawnCoords, handCoords, game);
+
+  $drawnSpot.css("--horizontal-distance", `${takeDistance.left}px`);
+  $drawnSpot.css("--vertical-distance", `${takeDistance.top}px`);
   $drawnSpot.css("animation", `take-card ${TAKE_TIME}ms`);
 
-  const $handCard = getCardFromInd(game, cardInd).closest(".card");
+  const discardDistance = calcMoveDistanceWithRotate(handCoords, discardCoords, game);
+
+  $handCard.css("--horizontal-distance", `${discardDistance.left}px`);
+  $handCard.css("--vertical-distance", `${discardDistance.top}px`);
+
   if (!$handCard.is(".face-up")) {
     showImg(game.topDiscard as Card, cardSpaceId);
     $handCard.css("animation", `take-and-flip-card ${TAKE_TIME}ms`);
@@ -76,12 +93,13 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
     $handCard.css("animation", `take-flipped-card ${TAKE_TIME}ms`);
   }
   await takePause();
-  $handCard.css("animation", "");
-  $drawnSpot.css("animation", "");
 
   showImg(game.topDiscard as Card, "top-discard");
   clearDrawnCardSpace(game);
   showCard(card, cardSpaceId);
+
+  $handCard.css("animation", "");
+  $drawnSpot.css("animation", "");
 }
 
 /** Update UI after drawing from the deck
@@ -93,36 +111,85 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
 async function takeDeckUI(game: Game) {
   const card = game.currPlayer.drawnCard as Card;
   showImg(card, "deck-card");
+
+  const fromOffset = $deck.offset() as JQuery.Coordinates;
+  const toOffset = getDrawnCardArea(game).offset() as JQuery.Coordinates;
+  const { left, top } = calcMoveDistance(fromOffset, toOffset);
+
+  $deckCard.css("--horizontal-distance", `${left}px`);
+  $deckCard.css("--vertical-distance", `${top}px`);
   $deckCard.css("animation", `take-card ${TAKE_TIME}ms`);
 
   await takePause();
 
   showImg(card, getDrawnCardSpaceId(game));
 
-  $deckCard.css("animation", "");
   $deckCard.removeAttr("src");
   $deckCard.hide();
+  $deckCard.css("animation", "");
 
   clearDeckIfEmpty(game);
 }
 
+/** Update UI after discarding a card drawn from the deck
+ *
+ * Takes:
+ * - game: a Game instance
+ */
+
 async function discardDrawnUI(game: Game) {
 
   const $card = getDrawnCard(game);
+
+  const fromOffset = $card.offset() as JQuery.Coordinates;
+  const toOffset = $discards.offset() as JQuery.Coordinates;
+  const { left, top } = calcMoveDistanceWithRotate(fromOffset, toOffset, game);
+
+  $card.css("--horizontal-distance", `${left}px`);
+  $card.css("--vertical-distance", `${top}px`);
   $card.css("animation", `take-card ${TAKE_TIME}ms`);
 
   await takePause();
 
-  $card.css("animation", "");
   showImg(game.topDiscard as Card, "top-discard");
   clearDrawnCardSpace(game);
 
+  $card.css("animation", "");
 }
 
 
 /*******************************************************************************
- * Helpers used for player moves
+ * Misc
 */
+
+/** Make card back images move from deck to each card spot */
+
+async function dealUI(game: Game) {
+  const fromOffset = $deck.offset() as JQuery.Coordinates;
+  const cardSpaces = $(".card-space").toArray();
+  cardSpaces.sort(() => Math.random() - .5);
+
+  for (let space of cardSpaces) {
+    const toOffset = $(space).offset() as JQuery.Coordinates;
+    const $tempDiv = $("<img>");
+    $tempDiv.attr("src", cardBack);
+    $("#deck-area").append($tempDiv);
+    $tempDiv.css("position", "absolute");
+    $tempDiv.css("width", "90%");
+    $tempDiv.css("height", "100%");
+
+    const { left, top } = calcMoveDistance(fromOffset, toOffset);
+
+    $tempDiv.css("--horizontal-distance", `${left}px`);
+    $tempDiv.css("--vertical-distance", `${top}px`);
+    $tempDiv.css("animation", "take-card 50ms");
+
+    await tinyPause();
+
+    $(space).children().show();
+    $tempDiv.remove();
+  }
+}
 
 /** Show the card area where the game is played
  *
@@ -337,6 +404,7 @@ async function resetCardArea(): Promise<void> {
   console.log("in resetCardArea");
 
   const $cards = $(".card");
+  $cards.hide();
   $cards.find("img").attr("src", cardBack);
   $cards.find("img").attr("alt", "back of card");
   $cards.removeClass("face-up");
@@ -358,7 +426,6 @@ async function resetCardArea(): Promise<void> {
   $topDiscard.hide();
 
   $endRoundScreen.hide();
-  $cards.hide();
 }
 
 /** Make current player's name bold
@@ -380,6 +447,7 @@ function unboldenName(game: Game) {
   const $nameArea = $(`#p${getPlayerIndex(game) + 1}-name`);
   $nameArea.removeClass("bold");
 }
+
 
 /*******************************************************************************
  * Messages
@@ -466,7 +534,7 @@ function tinyPause(): Promise<void> {
 
 function takePause(): Promise<void> {
   return new Promise((resolve) => {
-    setTimeout(resolve, TAKE_TIME);
+    setTimeout(resolve, TAKE_TIME - 25);
   });
 }
 
@@ -476,5 +544,5 @@ export {
   showImg, updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause,
   longPause, showScores, showEndScreen, boldenName, unboldenName, tinyPause,
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
-  updateDiscardPile,
+  updateDiscardPile, dealUI,
 };
