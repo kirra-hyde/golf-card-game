@@ -459,17 +459,19 @@ async function resetCardArea(): Promise<void> {
 
   const $cards = $(".card");
   $cards.hide();
+  $topDiscard.hide();
   $cards.find("img").attr("src", cardBack);
   $cards.find("img").attr("alt", "back of card");
   $cards.removeClass("face-up");
+  $cards.css("transform", "rotateY(0deg)");
 
   const $mainPlayerCards = $("#p1 .card");
   $mainPlayerCards.addClass("clickable flippable");
 
-  $cards.css("transition", "0s");
-  $cards.css("transform", "rotateY(0deg)");
-  await tinyPause();
-  $cards.css("transition", "0.6s");
+  // $cards.css("transition", "0s");
+
+  // await tinyPause();
+  // $cards.css("transition", "0.6s");
 
   $deck.attr("src", deck);
   $deck.attr("alt", "main deck of cards");
@@ -477,7 +479,6 @@ async function resetCardArea(): Promise<void> {
   $discards.attr("alt", "discards go here");
   $topDiscard.removeAttr("src");
   $topDiscard.removeAttr("alt");
-  $topDiscard.hide();
 
   $endRoundScreen.hide();
 }
