@@ -454,12 +454,13 @@ function makeScoreMessage(scores: number[], game: Game): string {
  * - Give HTML elements for main player cards classes "clickable" and "flippable"
  */
 
-function resetCardArea(): void {
+async function resetCardArea(): Promise<void> {
   console.log("in resetCardArea");
 
   const $cards = $(".card");
   $discards.attr("src", discardsPlaceholder);
   $discards.attr("alt", "discards go here");
+  await tinyPause();
   $cards.hide();
   $topDiscard.hide();
   $cards.find("img").attr("src", cardBack);

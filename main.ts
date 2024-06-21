@@ -171,7 +171,7 @@ function setupNewRoundListener(): Promise<void> {
 
     $cardsArea.on("click", async function () {
       $cardsArea.off();
-      resetCardArea();
+      await resetCardArea();
       resolve();
     });
   });
