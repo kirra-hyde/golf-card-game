@@ -454,7 +454,7 @@ function makeScoreMessage(scores: number[], game: Game): string {
  * - Give HTML elements for main player cards classes "clickable" and "flippable"
  */
 
-async function resetCardArea(): Promise<void> {
+function resetCardArea(): void {
   console.log("in resetCardArea");
 
   const $cards = $(".card");
