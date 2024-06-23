@@ -465,7 +465,7 @@ async function resetCardArea(): Promise<void> {
   const $cards = $(".card");
   $discards.attr("src", discardsPlaceholder);
   $discards.attr("alt", "discards go here");
-  await tinyPause();
+  await takePause();
   $cards.hide();
   $topDiscard.hide();
   $cards.find("img").attr("src", cardBack);
