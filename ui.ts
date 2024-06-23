@@ -158,7 +158,7 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
  * - game: a Game instance
  */
 
-async function takeDeckUI(game: Game) {
+async function drawDeckUI(game: Game) {
   const card = game.currPlayer.drawnCard as Card;
   showImg(card, "deck-card");
 
@@ -248,6 +248,10 @@ async function dealUI(game: Game) {
     $(space).children().show();
     $tempDiv.remove();
   }
+  await tinyPause();
+
+  const card = game.topDiscard as Card;
+  showImg(card, "top-discard");
 }
 
 /** Show the card area where the game is played
@@ -268,13 +272,15 @@ function showCardsArea(): string {
 
 /** Update images when discards are shuffled into the main deck */
 
-function updatePicsOnReshuffle(): void {
+async function updatePicsOnReshuffle(): Promise<void> {
   $discards.attr("src", discardsPlaceholder);
   $discards.attr("alt", "discards go here");
+  await tinyPause();
   $topDiscard.attr("src", blank);
-  $topDiscard.removeAttr("alt");
   $deck.attr("src", deck);
+  $topDiscard.removeAttr("alt");
   $deck.attr("alt", "main deck of cards");
+  await shortPause();
 }
 
 /** Flip card face up and show image w/out flip animation
@@ -601,6 +607,6 @@ export {
   showCardsArea, flipCard, showFlipMessage, showDealMessage, showTurnMessage,
   showImg, updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause,
   longPause, showScores, showEndScreen, boldenName, unboldenName, tinyPause,
-  drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
+  drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, drawDeckUI,
   updateDiscardPile, dealUI,
 };

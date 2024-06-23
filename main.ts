@@ -5,11 +5,11 @@ import {
   getBadVals, getBestToSwap, getIndInPinch, getCardIndex,
 } from "./utilities.js";
 import {
-  showCardsArea, showImg, flipCard, showFlipMessage, showDealMessage, tinyPause,
+  showCardsArea, flipCard, showFlipMessage, showDealMessage, tinyPause,
   showTurnMessage, updatePicsOnReshuffle, makeUnclickable, resetCardArea,
   shortPause, longPause, showScores, showEndScreen, boldenName, unboldenName,
-  drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, takeDeckUI,
-  updateDiscardPile, dealUI
+  drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, drawDeckUI,
+  updateDiscardPile, dealUI,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -72,8 +72,6 @@ async function startRound(game: Game): Promise<void> {
   await shortPause();
 
   await dealUI(game);
-  await shortPause();
-  showImg(game.topDiscard as Card, "top-discard");
 
   await shortPause();
   for (let player of game.players.slice(1)) {
@@ -562,11 +560,11 @@ async function drawFromDeck(game: Game): Promise<void> {
   console.log("In main: drawFromDeck");
   let reshuffled = false;
   if (game.deckIsEmpty === true) {
-    updatePicsOnReshuffle();
+    await updatePicsOnReshuffle();
     reshuffled = true;
   }
   await game.currPlayer.drawFromDeck(game);
-  await takeDeckUI(game);
+  await drawDeckUI(game);
   if (!reshuffled) {
     updateDiscardPile();
   }
