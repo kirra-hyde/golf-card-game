@@ -400,7 +400,7 @@ h5 {
   }
 }
 
-@keyframes take-card {
+@keyframes deal-card {
   from {
     transform: translateX(0) translateY(0);
     z-index: 10;
@@ -412,26 +412,26 @@ h5 {
   }
 }
 
-@keyframes take-and-flip-card {
+@keyframes take-card {
   from {
-    transform: translateX(0) translateY(0) rotateY(0deg);
+    transform: translateX(0) translateY(0) rotate(var(--start-angle));
     z-index: 10;
   }
 
   to {
-    transform: translateX(var(--horizontal-distance)) translateY(var(--vertical-distance)) rotateY(180deg);
+    transform: translateX(var(--horizontal-distance)) translateY(var(--vertical-distance)) rotate(var(--end-angle));
     z-index: 10;
   }
 }
 
 @keyframes take-flipped-card {
   from {
-    transform: translateX(0) translateY(0) rotateY(180deg);
+    transform: translateX(0) translateY(0) rotateY(180deg) rotate(var(--start-angle));
     z-index: 10;
   }
 
   to {
-    transform: translateX(var(--horizontal-distance)) translateY(var(--vertical-distance)) rotateY(180deg);
+    transform: translateX(var(--horizontal-distance)) translateY(var(--vertical-distance)) rotateY(180deg) rotate(var(--end-angle));
     z-index: 10;
   }
 }

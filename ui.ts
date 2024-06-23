@@ -2,7 +2,7 @@ import { Game, Card, Player } from "./models.js";
 import {
   getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd, getDrawnCard,
   getCardFromInd, calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
-  getDrawnCardArea,
+  getDrawnCardArea, getRotation,
 } from "./utilities.js";
 
 import discardsPlaceholder from "./images/discards_placeholder.png";
@@ -44,8 +44,11 @@ const TAKE_TIME = 500;
 async function drawDiscardUI(game: Game): Promise<void> {
   const fromOffset = $discards.offset() as JQuery.Coordinates;
   const toOffset = getDrawnCardBackground(game).offset() as JQuery.Coordinates;
-  const {top, left} = calcMoveDistance(fromOffset, toOffset);
+  const { top, left } = calcMoveDistance(fromOffset, toOffset);
+  const { start, end } = getRotation(game, "draw");
 
+  $topDiscard.css("--start-angle", `${start}deg`);
+  $topDiscard.css("--end-angle", `${end}deg`);
   $topDiscard.css("--horizontal-distance", `${left}px`);
   $topDiscard.css("--vertical-distance", `${top}px`);
   $topDiscard.css("animation", `take-card ${TAKE_TIME}ms`);
@@ -71,6 +74,13 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
 
   // Element to be animated
   const $handCard = getCardFromInd(game, cardInd).closest(".card");
+
+  // Flip card about to be discarded, if it's face down
+  const cardSpaceId = getCardSpaceId(cardInd, game);
+  if (!$handCard.is(".face-up")) {
+    flipCard(game.topDiscard as Card, cardSpaceId);
+    await takePause();
+  }
   // Ancestors of $handCard. Their z-index needs raised so $handCard stays visible through animation
   const $handCardArea = $handCard.parent();
   const $playerCardsArea = $handCardArea.parent();
@@ -80,45 +90,31 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
   const handCoords = $handCard.offset() as JQuery.Coordinates;
   const discardCoords = $discards.offset() as JQuery.Coordinates;
 
-  // Used if card being moved is face-down to give it an image before moving it
-  // Image is added to face down side, but becomes visible as card flips while moving
-  const cardSpaceId = getCardSpaceId(cardInd, game);
-
   const discardDistance = calcMoveDistanceWithRotate(handCoords, discardCoords, game);
 
   // Adjust z-indexes so that $handcard stays visible through animation
   $handCardArea.css("z-index", "6");
   $playerCardsArea.css("z-index", "5");
-  $("#middle").css("z-index", "0");
-  $("#discards-area").css("z-index", "1");
-  $discards.css("z-index", "2");
-  $topDiscard.css("z-index", "3");
+  const rotations = getRotation(game, "discard");
 
+  $handCard.css("--start-angle", `${rotations.start}deg`);
+  $handCard.css("--end-angle", `${rotations.end}deg`);
   $handCard.css("--horizontal-distance", `${discardDistance.left}px`);
   $handCard.css("--vertical-distance", `${discardDistance.top}px`);
 
   // The animation
-  if (!$handCard.is(".face-up")) {
-    showImg(game.topDiscard as Card, cardSpaceId);
-    $handCard.css("animation", `take-and-flip-card ${TAKE_TIME}ms`);
-  } else {
-    $handCard.css("animation", `take-flipped-card ${TAKE_TIME}ms`);
-  }
+  $handCard.css("animation", `take-flipped-card ${TAKE_TIME}ms`);
+
   await takePause();
 
   // Set images to how they should be after animation
   showImg(game.topDiscard as Card, "top-discard");
   $handCard.hide();
 
-  // Clear all the z-index changes
+  // Clear all the z-index changes and animation
   $handCard.css("animation", "");
   $handCardArea.css("z-index", "");
-  $discards.css("z-index", "");
-  $topDiscard.css("z-index", "");
-  $handCardArea.css("z-index", "");
   $playerCardsArea.css("z-index", "");
-  $("#middle").css("z-index", "");
-  $("#discards-area").css("z-index", "");
 
 
   // Animation 2: Take drawn card into hand
@@ -128,6 +124,7 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
   const $drawnCard = getDrawnCard(game);
 
   const takeDistance = calcMoveDistanceWithRotate(drawnCoords, handCoords, game);
+  const { start, end } = getRotation(game, "take");
 
   // Adjust the z-indexes so the drawn card stays visible through animation
   const $drawnCardArea = getDrawnCardArea(game);
@@ -137,6 +134,8 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
 
 
   // The animation
+  $drawnCard.css("--start-angle", `${start}deg`);
+  $drawnCard.css("--end-angle", `${end}deg`);
   $drawnCard.css("--horizontal-distance", `${takeDistance.left}px`);
   $drawnCard.css("--vertical-distance", `${takeDistance.top}px`);
   $drawnCard.css("animation", `take-card ${TAKE_TIME}ms`);
@@ -166,7 +165,10 @@ async function takeDeckUI(game: Game) {
   const fromOffset = $deck.offset() as JQuery.Coordinates;
   const toOffset = getDrawnCardBackground(game).offset() as JQuery.Coordinates;
   const { left, top } = calcMoveDistance(fromOffset, toOffset);
+  const { start, end } = getRotation(game, "draw");
 
+  $deckCard.css("--start-angle", `${start}deg`);
+  $deckCard.css("--end-angle", `${end}deg`);
   $deckCard.css("--horizontal-distance", `${left}px`);
   $deckCard.css("--vertical-distance", `${top}px`);
   $deckCard.css("animation", `take-card ${TAKE_TIME}ms`);
@@ -196,8 +198,11 @@ async function discardDrawnUI(game: Game) {
   const fromOffset = $card.offset() as JQuery.Coordinates;
   const toOffset = $discards.offset() as JQuery.Coordinates;
   const { left, top } = calcMoveDistanceWithRotate(fromOffset, toOffset, game);
+  const { start, end } = getRotation(game, "discard");
 
   $cardArea.css("z-index", "5");
+  $card.css("--start-angle", `${start}deg`);
+  $card.css("--end-angle", `${end}deg`);
   $card.css("--horizontal-distance", `${left}px`);
   $card.css("--vertical-distance", `${top}px`);
   $card.css("animation", `take-card ${TAKE_TIME}ms`);
@@ -236,7 +241,7 @@ async function dealUI(game: Game) {
 
     $tempDiv.css("--horizontal-distance", `${left}px`);
     $tempDiv.css("--vertical-distance", `${top}px`);
-    $tempDiv.css("animation", "take-card 50ms");
+    $tempDiv.css("animation", "deal-card 50ms");
 
     await tinyPause();
 
@@ -583,7 +588,7 @@ function tinyPause(): Promise<void> {
   });
 }
 
-/** Pause game for time it takes to take a card */
+/** Pause game for time it takes to take a card (minus a hair for smoother transition)*/
 
 function takePause(): Promise<void> {
   return new Promise((resolve) => {

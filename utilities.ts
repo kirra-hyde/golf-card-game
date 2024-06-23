@@ -5,6 +5,8 @@ type tPosition = {
   top: number;
 };
 
+type tMove = "draw" | "discard" | "take";
+
 /** Randomly choose Player from array of Players
  *
  * Takes: players, an array of Player instances
@@ -225,16 +227,32 @@ function getVerticalInd(game: Game, card: Card, player: Player = game.currPlayer
   }
 }
 
+/** Calculate how far a card element needs to move. For moves without rotation.
+ *
+ * Takes:
+ * - fromOffset: obj of coords of starting postion. Ex {left: 100, top: 135}
+ * - toOffset: obj of coords of ending postion. Ex {left: 140, top: 105}
+ * Returns: obj with nums of pixels element should move. Ex {left: 40, top: -30}
+ */
+
 function calcMoveDistance(from: tPosition, to: tPosition): tPosition {
   const left = to.left - from.left;
   const top = to.top - from.top;
   return { left, top };
 }
 
+/** Calculate how far a card element needs to move. For moves with rotation.
+ *
+ * Takes:
+ * - fromOffset: obj of coords of starting postion. Ex {left: 100, top: 135}
+ * - toOffset: obj of coords of ending postion. Ex {left: 140, top: 105}
+ * Returns: obj with nums of pixels element should move. Ex {left: 40, top: -30}
+ */
+
 function calcMoveDistanceWithRotate(from: tPosition, to: tPosition, game: Game): tPosition {
   const left = to.left - from.left;
   const top = to.top - from.top;
-  const playerInd = getPlayerIndex(game)
+  const playerInd = getPlayerIndex(game);
   if (playerInd === 0) {
     return { left, top };
   }
@@ -242,21 +260,47 @@ function calcMoveDistanceWithRotate(from: tPosition, to: tPosition, game: Game):
     return {
       left: top,
       top: -(left),
-    }
+    };
   }
   if (playerInd === 2) {
     return {
       left: -(left),
       top: -(top),
-    }
+    };
   }
   if (playerInd === 3) {
     return {
       left: -(top),
       top: left,
-    }
+    };
   }
   return { left, top };
+}
+
+/** Get the starting and ending rotation position for a moving element
+ *
+ * Takes:
+ * - game: a Game instance
+ * - move: the move in the game corresponding to the animation. Ex. "draw"
+ * Returns obj with numbers of degrees of rotation. Ex. {start: 0, end: 90}
+ */
+
+function getRotation(game: Game, move: tMove): { start: number, end: number; } {
+  const playerInd = getPlayerIndex(game);
+  if (playerInd === 0 || playerInd === 2) {
+    return { start: 0, end: 0 };
+  }
+  const playerRotation = playerInd === 1 ? 90 : -90;
+  if (move === "draw") {
+    return { start: 0, end: playerRotation };
+  }
+  if (move === "discard") {
+    return { start: 0, end: -playerRotation };
+  }
+  if (move === "take") {
+    return { start: 0, end: 0 };
+  }
+  return { start: 0, end: 0 };
 }
 
 /*******************************************************************************
@@ -458,5 +502,5 @@ export {
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
   getWinnerInd, getCardIndex, getVerticalInd, getDrawnCardSpaceId, getDrawnCard,
   getCardFromInd, calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
-  sortCards, getEmptyColInds, getDrawnCardArea,
+  sortCards, getEmptyColInds, getDrawnCardArea, getRotation,
 };
