@@ -24,6 +24,7 @@ const $topDiscard = $("#top-discard");
 const $messages = $("#messages");
 const $deck = $("#deck");
 const $deckCard = $("#deck-card");
+const $deckArea = $("#deck-area");
 const $roundScores = $("#round-scores");
 const $totalScores = $("#total-scores");
 const $endMessage = $("#end-message");
@@ -232,7 +233,7 @@ async function dealUI(game: Game) {
     const toOffset = $(space).offset() as JQuery.Coordinates;
     const $tempDiv = $("<img>");
     $tempDiv.attr("src", cardBack);
-    $("#deck-area").append($tempDiv);
+    $deckArea.append($tempDiv);
     $tempDiv.css("position", "absolute");
     $tempDiv.css("width", "90%");
     $tempDiv.css("height", "100%");
@@ -252,6 +253,31 @@ async function dealUI(game: Game) {
 
   const card = game.topDiscard as Card;
   showImg(card, "top-discard");
+}
+
+async function shuffle() {
+  for (let i = 0; i < 8; i++) {
+    const $tempCard = $("<img>");
+    $tempCard.addClass("temp");
+    $tempCard.attr("src", cardBack);
+    $tempCard.css("visibility", "hidden");
+
+    const delay = Math.random() * 0.5;
+    const direction = Math.random() < 0.5 ? 1 : -1;
+    const rotate = Math.random() * 20 * direction;
+    const translateX = Math.random() * 20 * direction;
+    const translateY = Math.random() * 20 * direction;
+    $($tempCard).css("animation", `shuffle 600ms ease-in-out ${delay}s infinite`);
+    $($tempCard).css("transform", `translate(${translateX}px, ${translateY}px) rotate(${rotate}deg)`);
+
+    $deckArea.append($tempCard);
+  }
+  // Cards have random delays before they start shuffling, so they're not in unison.
+  // We wait to show the cards so that they'll all be moving when they're shown.
+  await shufflePause();
+  $(".temp").css("visibility", "visible");
+  await shortPause();
+  $(".temp").remove();
 }
 
 /** Show the card area where the game is played
@@ -280,6 +306,7 @@ async function updatePicsOnReshuffle(): Promise<void> {
   $deck.attr("src", deck);
   $topDiscard.removeAttr("alt");
   $deck.attr("alt", "main deck of cards");
+  await shuffle();
   await shortPause();
 }
 
@@ -602,11 +629,19 @@ function takePause(): Promise<void> {
   });
 }
 
+/** Pause game to adjust for delays in shuffle animation */
+
+function shufflePause(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 400);
+  });
+}
+
 
 export {
   showCardsArea, flipCard, showFlipMessage, showDealMessage, showTurnMessage,
   showImg, updatePicsOnReshuffle, makeUnclickable, resetCardArea, shortPause,
   longPause, showScores, showEndScreen, boldenName, unboldenName, tinyPause,
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, drawDeckUI,
-  updateDiscardPile, dealUI,
+  updateDiscardPile, dealUI, shuffle, shufflePause,
 };

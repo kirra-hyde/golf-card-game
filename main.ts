@@ -9,7 +9,7 @@ import {
   showTurnMessage, updatePicsOnReshuffle, makeUnclickable, resetCardArea,
   shortPause, longPause, showScores, showEndScreen, boldenName, unboldenName,
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, drawDeckUI,
-  updateDiscardPile, dealUI,
+  updateDiscardPile, dealUI, shuffle, shufflePause,
 } from "./ui.js";
 
 const $cardsArea = $("#cards-area");
@@ -66,14 +66,15 @@ startForm.addEventListener("submit", handleGame);
 
 async function startRound(game: Game): Promise<void> {
   console.log("In main: startRound");
-  await shortPause();
+  await shufflePause(); // We're not shuffling, but this length of pause looks good.
   showDealMessage(game);
   await game.dealGame();
+  await shuffle();
   await shortPause();
 
   await dealUI(game);
-
   await shortPause();
+
   for (let player of game.players.slice(1)) {
     flip(game, randSelectEmptyColInd(game, player) as number, player);
     flip(game, randSelectEmptyColInd(game, player) as number, player);
