@@ -262,7 +262,7 @@ h2 {
 }
 
 h3 {
-  font-size: clamp(1rem, 2.4vw, 1.6rem);
+  font-size: clamp(.7rem, 2.4vw, 1.6rem);
 }
 
 h4 {
@@ -361,7 +361,7 @@ h5 {
   }
 }
 
-@media only screen and (max-width: 590px) {
+@media only screen and (max-width: 590px) and (min-width: 450px) {
   #p1-name {
     bottom: 230%;
   }
@@ -404,6 +404,77 @@ h5 {
 
   #end-screen {
     bottom: 35%;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  #p1-name {
+    bottom: 290%;
+  }
+
+  #p1 {
+    bottom: 47%;
+  }
+
+  #middle {
+    bottom: 27%;
+  }
+
+  #p3 {
+    bottom: 7%;
+  }
+
+  #p3-name {
+    top: 30%;
+  }
+
+  #drawn-card-area-2 {
+    bottom: 53%;
+  }
+
+  #drawn-card-area-4 {
+    top: 8%;
+  }
+
+  #drawn-card-area-1 {
+    bottom: 35%;
+  }
+
+  #drawn-card-area-3 {
+    top: -20%;
+  }
+
+  #p2-name {
+    left: 170%;
+    bottom: 20%;
+  }
+
+  #p4-name {
+    right: 170%;
+  }
+
+  #p2 {
+    bottom: 23%;
+  }
+
+  #p4 {
+    bottom: 23%;
+  }
+
+  #messages {
+    font-size: x-large;
+  }
+
+  #end-round-screen {
+    bottom: 50%;
+  }
+
+  #end-screen {
+    bottom: 35%;
+  }
+
+  #deck-area {
+    right: 15%;
   }
 }
 
