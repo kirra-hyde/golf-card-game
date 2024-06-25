@@ -478,6 +478,219 @@ h5 {
   }
 }
 
+@media only screen and (max-height: 852px) and (min-height: 630px) and (min-aspect-ratio: 1.27){
+  #cards-area {
+    max-height: 853px;
+    height: 98vh;
+    width: auto;
+  }
+
+  #p2 {
+    right: 5%;
+  }
+
+  #p2-name {
+    left: 40%;
+  }
+
+  #p4 {
+    left: 5%;
+  }
+
+  #p4-name {
+    right: 40%;
+  }
+
+  #drawn-card-area-2 {
+    bottom: 25%;
+  }
+
+  #drawn-card-area-4 {
+    top: -5%;
+    left: 15%;
+  }
+}
+
+@media only screen and (max-height: 630px) and (min-height: 475px) and (min-aspect-ratio: 1.27){
+  #cards-area {
+    max-height: 853px;
+    height: 98vh;
+    width: auto;
+  }
+
+  #p2 {
+    right: 5%;
+    bottom: 17%;
+  }
+
+  #p2-name {
+    left: 90%;
+  }
+
+  #p4 {
+    left: 5%;
+    bottom: 20%;
+  }
+
+  #p4-name {
+    right: 90%;
+  }
+
+  #p3-name {
+    top: 20%;
+  }
+
+  #p3 {
+    bottom: 3%;
+  }
+
+  #drawn-card-area-3 {
+    bottom: 18%;
+  }
+
+  #drawn-card-area-2 {
+    bottom: 27%;
+  }
+
+  #drawn-card-area-4 {
+    top: -9%;
+    left: 15%;
+  }
+
+  #p1 {
+    bottom: 35%;
+  }
+
+  #p1-name {
+    bottom: 220%;
+  }
+
+  #drawn-card-area-1 {
+    bottom: 19%;
+  }
+
+  #middle {
+    bottom: 18%;
+  }
+
+  #messages {
+    font-size: xx-large;
+  }
+
+  h3 {
+    font-size: large;
+  }
+
+  h4 {
+    font-size: large;
+  }
+
+  h2 {
+    font-size: x-large;
+  }
+
+  h1 {
+    font-size: xx-large;
+  }
+
+  h5 {
+    font-size: medium;
+  }
+}
+
+@media only screen and (max-height: 475px) and (min-aspect-ratio: 1.27){
+  #cards-area {
+    max-height: 853px;
+    height: 96vh;
+    width: auto;
+  }
+
+  #p2 {
+    right: 5%;
+    bottom: 19%;
+  }
+
+  #p2-name {
+    left: 190%;
+  }
+
+  #p4 {
+    left: 5%;
+    bottom: 23%;
+  }
+
+  #p4-name {
+    right: 190%;
+  }
+
+  #p3-name {
+    top: 38%;
+  }
+
+  #p3 {
+    bottom: 4%;
+  }
+
+  #drawn-card-area-3 {
+    bottom: 18%;
+    left: 30%;
+  }
+
+  #drawn-card-area-2 {
+    bottom: 32%;
+  }
+
+  #drawn-card-area-4 {
+    top: -9%;
+    left: 15%;
+  }
+
+  #p1 {
+    bottom: 42%;
+  }
+
+  #p1-name {
+    bottom: 270%;
+  }
+
+  #drawn-card-area-1 {
+    bottom: 27%;
+  }
+
+  #messages {
+    font-size: x-large;
+  }
+
+  h3 {
+    font-size: large;
+  }
+
+  h4 {
+    font-size: large;
+  }
+
+  #middle {
+    bottom: 23%;
+  }
+
+  h2 {
+    font-size: large;
+  }
+
+  h1 {
+    font-size: x-large;
+  }
+
+  h5 {
+    font-size: medium;
+  }
+
+  #end-screen {
+    top: 20%;
+    height: 50%;
+  }
+}
+
 @keyframes deal-card {
   from {
     transform: translateX(0) translateY(0);
