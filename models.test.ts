@@ -6,6 +6,7 @@ import MockAdaptor from "axios-mock-adapter";
 const mock = new MockAdaptor(axios);
 
 let testPlayer: Player;
+let testPlayers: Player[];
 let testGame: Game;
 let testCard: Card;
 let testCard2: Card;
@@ -14,13 +15,17 @@ let testCard4: Card;
 
 beforeEach(function () {
   const testPlayerNames = ["p1", "p2", "p3", "p4"];
-  const testPlayers = testPlayerNames.map(name => new Player(name));
+  testPlayers = testPlayerNames.map(name => new Player(name));
   testPlayer = new Player("test player");
   testGame = new Game("123", testPlayers);
   testCard = new Card("8", "http://www.pic.com", "8C");
   testCard2 = new Card("9", "http://www.pic.com", "9C");
   testCard3 = new Card("10", "http://www.pic.com", "0C");
   testCard4 = new Card("JACK", "http://www.pic.com", "JC");
+  const cards = [testCard, testCard2, testCard3, testCard4];
+  for (let player of testGame.players) {
+    player.cards = cards;
+  }
 });
 
 
@@ -61,7 +66,7 @@ describe("Game class", function () {
   });
 
   test("dealGame", async function () {
-    const game = testGame;
+    const game = new Game("123", testPlayers);
     const shortUrl = `${BASE_URL}/${game.deckID}/draw`;
 
     // Mock the axios.get method to return mock responses with card data
@@ -105,12 +110,24 @@ describe("Game class", function () {
   test("switchTurn", function () {
     const game = testGame;
     game.currPlayer = game.players[2];
+    game.currPlayer.cards[1].flipped = true;
+    game.turnsLeft = 4;
 
     game.switchTurn();
+
     expect(game.currPlayer).toBe(game.players[3]);
+    expect(testGame.countdown).toBe(false);
+    expect(testGame.turnsLeft).toBe(4);
+
+    for (let card of testGame.currPlayer.cards) {
+      card.flipped = true;
+    }
 
     game.switchTurn();
+
     expect(game.currPlayer).toBe(game.players[0]);
+    expect(testGame.countdown).toBe(true);
+    expect(testGame.turnsLeft).toBe(3);
   });
 
   test("reshuffle", async function () {
@@ -223,7 +240,7 @@ describe("Player class", function () {
     const game = testGame;
     const player = game.players[0];
     const card1 = testCard;
-    const card2 = testCard2
+    const card2 = testCard2;
 
     player.drawnCard = card1;
 
