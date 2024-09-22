@@ -193,7 +193,7 @@ class Game {
 
   /** Start a new round
    *
-   * - Set roundsLeft to 4
+   * - Set turnsLeft to 4
    * - Set countdown to false
    * - Set currDealer to the next Player after old currDealer
    * - Set currPlayer to the next Player after new currDealer

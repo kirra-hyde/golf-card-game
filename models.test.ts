@@ -147,6 +147,23 @@ describe("Game class", function () {
     expect(game.deckIsEmpty).toEqual(false);
     expect(game.discardPileHasCards).toEqual(false);
   });
+
+  test("switchRound", async function () {
+    const game = testGame;
+
+    game.countdown = true;
+    game.turnsLeft = 0;
+    game.currDealer = testPlayers[1];
+
+    mock.onGet(`${BASE_URL}/${game.deckID}/shuffle`).reply(200);
+
+    await game.switchRound();
+
+    expect(game.countdown).toBe(false);
+    expect(game.turnsLeft).toBe(game.players.length);
+    expect(game.currDealer).toBe(testPlayers[2]);
+    expect(game.currPlayer).toBe(testPlayers[3]);
+  });
 });
 
 
