@@ -228,7 +228,7 @@ class Game {
     if (cardInd >= 3 && cards[cardInd - 3].flipped) {
       cards[cardInd].locked = true;
       cards[cardInd - 3].locked = true;
-      return [cardInd, cardInd - 3];
+      return [cardInd - 3, cardInd];
     }
   }
 
@@ -391,4 +391,4 @@ class Player {
   }
 }
 
-export { Game, Player, Card, BASE_URL };
+export { Game, Player, Card, BASE_URL, POINTS_PER_GAME };

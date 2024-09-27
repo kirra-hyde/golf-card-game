@@ -1,28 +1,31 @@
 import { describe, test, expect, beforeEach } from "vitest";
-import { Game, Player, Card, BASE_URL } from "./models";
+import { Game, Player, Card, BASE_URL, POINTS_PER_GAME } from "./models";
 import axios from "axios";
 import MockAdaptor from "axios-mock-adapter";
 
 const mock = new MockAdaptor(axios);
 
-let testPlayer: Player;
 let testPlayers: Player[];
 let testGame: Game;
 let testCard: Card;
 let testCard2: Card;
-let testCard3: Card;
-let testCard4: Card;
 
 beforeEach(function () {
   const testPlayerNames = ["p1", "p2", "p3", "p4"];
   testPlayers = testPlayerNames.map(name => new Player(name));
-  testPlayer = new Player("test player");
   testGame = new Game("123", testPlayers);
-  testCard = new Card("8", "http://www.pic.com", "8C");
-  testCard2 = new Card("9", "http://www.pic.com", "9C");
-  testCard3 = new Card("10", "http://www.pic.com", "0C");
-  testCard4 = new Card("JACK", "http://www.pic.com", "JC");
-  const cards = [testCard, testCard2, testCard3, testCard4];
+  testCard = new Card("10", "http://www.pic.com", "10C");
+  testCard2 = new Card("KING", "http://www.pic.com", "KC");
+
+  const cards = [
+    new Card("ACE", "http://www.pic.com", "AC"),
+    new Card("2", "http://www.pic.com", "2C"),
+    new Card("3", "http://www.pic.com", "3C"),
+    new Card("4", "http://www.pic.com", "4C"),
+    new Card("5", "http://www.pic.com", "5C"),
+    new Card("6", "http://www.pic.com", "6C"),
+  ];
+
   for (let player of testGame.players) {
     player.cards = cards;
   }
@@ -116,8 +119,8 @@ describe("Game class", function () {
     game.switchTurn();
 
     expect(game.currPlayer).toBe(game.players[3]);
-    expect(testGame.countdown).toBe(false);
-    expect(testGame.turnsLeft).toBe(4);
+    expect(testGame.countdown).toEqual(false);
+    expect(testGame.turnsLeft).toEqual(4);
 
     for (let card of testGame.currPlayer.cards) {
       card.flipped = true;
@@ -126,8 +129,8 @@ describe("Game class", function () {
     game.switchTurn();
 
     expect(game.currPlayer).toBe(game.players[0]);
-    expect(testGame.countdown).toBe(true);
-    expect(testGame.turnsLeft).toBe(3);
+    expect(testGame.countdown).toEqual(true);
+    expect(testGame.turnsLeft).toEqual(3);
   });
 
   test("reshuffle", async function () {
@@ -159,10 +162,64 @@ describe("Game class", function () {
 
     await game.switchRound();
 
-    expect(game.countdown).toBe(false);
-    expect(game.turnsLeft).toBe(game.players.length);
+    expect(game.countdown).toEqual(false);
+    expect(game.turnsLeft).toEqual(game.players.length);
     expect(game.currDealer).toBe(testPlayers[2]);
     expect(game.currPlayer).toBe(testPlayers[3]);
+  });
+
+  test("lockCards", function () {
+    const game = testGame;
+    const player = testGame.players[2];
+    player.cards[1].flipped = true;
+
+    const lockedCards = game.lockCards(1, player);
+
+    expect(lockedCards).toBeUndefined();
+    expect(player.cards[1].locked).toEqual(false);
+    expect(player.cards[4].locked).toEqual(false);
+
+    player.cards[4].flipped = true;
+
+    const lockedCards2 = game.lockCards(1, player);
+
+    expect(lockedCards2).toEqual([1, 4]);
+    expect(player.cards[1].locked).toEqual(true);
+    expect(player.cards[4].locked).toEqual(true);
+
+    player.cards[5].flipped = true;
+
+    const lockedCards3 = game.lockCards(5, player);
+
+    expect(lockedCards3).toBeUndefined();
+    expect(player.cards[5].locked).toEqual(false);
+    expect(player.cards[2].locked).toEqual(false);
+
+    player.cards[2].flipped = true;
+
+    const lockedCards4 = game.lockCards(5, player);
+
+    expect(lockedCards4).toEqual([2, 5]);
+    expect(player.cards[5].locked).toEqual(true);
+    expect(player.cards[2].locked).toEqual(true);
+  });
+
+  test("checkIfOver", function () {
+    const game = testGame;
+    const enoughPts = POINTS_PER_GAME;
+    game.scores = [enoughPts - 1, enoughPts - 5, enoughPts - 3, enoughPts - 10];
+
+    const isOver = game.checkIfOver();
+
+    expect(isOver).toEqual(false);
+    expect(game.gameFinished).toEqual(false);
+
+    game.scores = [enoughPts, enoughPts - 5, enoughPts - 3, enoughPts - 10];
+
+    const isOver2 = game.checkIfOver();
+
+    expect(isOver2).toEqual(true);
+    expect(game.gameFinished).toEqual(true);
   });
 });
 
@@ -177,10 +234,7 @@ describe("Player class", function () {
   });
 
   test("flipCard", function () {
-    const player = testPlayer;
-    const card1 = testCard;
-    const card2 = testCard2;
-    player.cards = [card1, card2];
+    const player = testGame.players[0];
 
     expect(player.cards[0].flipped).toEqual(false);
     expect(player.cards[1].flipped).toEqual(false);
@@ -259,6 +313,8 @@ describe("Player class", function () {
     const card1 = testCard;
     const card2 = testCard2;
 
+    mock.onGet(`${BASE_URL}/${game.deckID}/pile/discard/add`).reply(200);
+
     player.drawnCard = card1;
 
     expect(game.topDiscard).toBeNull();
@@ -284,34 +340,36 @@ describe("Player class", function () {
     const player = testGame.players[0];
     const card1 = testCard;
     const card2 = testCard2;
-    const card3 = testCard3;
-    const card4 = testCard4;
+    player.drawnCard = card1;
 
-    player.cards = [card1, card2];
-    player.drawnCard = card3;
+    mock.onGet(`${BASE_URL}/${game.deckID}/pile/discard/add`).reply(200);
 
+    expect(card1.flipped).toEqual(false);
     expect(game.topDiscard).toBeNull();
-    expect(card3.flipped).toEqual(false);
-    expect(card4.flipped).toEqual(false);
+    expect(player.cards[1]).toEqual(
+      { code: "2C", image: "http://www.pic.com", value: "2", flipped: false, locked: false }
+    );
     expect(game.discardPileHasCards).toEqual(false);
 
     await player.takeDrawnCard(1, game);
 
-    expect(player.cards).toEqual([card1, card3]);
-    expect(game.topDiscard).toBe(card2);
-    expect(card3.flipped).toEqual(true);
-    expect(card4.flipped).toEqual(false);
+    expect(player.cards[1]).toBe(card1);
+    expect(card1.flipped).toEqual(true);
+    expect(game.topDiscard).toEqual(
+      { code: "2C", image: "http://www.pic.com", value: "2", flipped: false, locked: false }
+    );
     expect(player.drawnCard).toBeNull();
     expect(game.discardPileHasCards).toEqual(false);
 
-    player.drawnCard = card4;
+    player.drawnCard = card2;
+    expect(card2.flipped).toEqual(false);
 
-    await player.takeDrawnCard(0, game);
+    await player.takeDrawnCard(1, game);
 
-    expect(player.cards).toEqual([card4, card3]);
+    expect(player.cards[1]).toBe(card2);
     expect(game.topDiscard).toBe(card1);
-    expect(card3.flipped).toEqual(true);
-    expect(card4.flipped).toEqual(true);
+    expect(card1.flipped).toEqual(true);
+    expect(card2.flipped).toEqual(true);
     expect(player.drawnCard).toBeNull();
     expect(game.discardPileHasCards).toEqual(true);
   });
