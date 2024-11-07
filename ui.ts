@@ -457,11 +457,11 @@ function showEndScreen(game: Game, roundScores: number[]): void {
   $lastRoundScores.text(`Round scores:  ${roundMessage}`);
 
   let endMessage: string;
-  const winnerInd = getWinnerInd(game);
-  if (winnerInd === 0) {
+  const winner = game.getWinner(); // Use the new getWinner method
+  if (winner === game.players[0]) {
     endMessage = "Congratulations, you win!!";
   } else {
-    endMessage = `${game.players[winnerInd].name} wins`;
+    endMessage = `${winner.name} wins`;
   }
   $endMessage.text(endMessage);
 

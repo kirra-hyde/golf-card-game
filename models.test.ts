@@ -221,6 +221,18 @@ describe("Game class", function () {
     expect(isOver2).toEqual(true);
     expect(game.gameFinished).toEqual(true);
   });
+
+  test("getWinner", function () {
+    const game = testGame;
+
+    game.scores = [10, 15, 20, 25];
+    const winner = game.getWinner();
+    expect(winner).toBe(game.players[0]);
+
+    game.scores = [40, 30, 20, 10];
+    const winner4 = game.getWinner();
+    expect(winner4).toBe(game.players[3]);
+  });
 });
 
 

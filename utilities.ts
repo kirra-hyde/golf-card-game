@@ -196,11 +196,12 @@ function getPlayerIndex(game: Game, player: Player = game.currPlayer): number {
   return game.players.indexOf(player);
 }
 
-/** Get the index of a Card in the current player's cards array
+/** Get the index of a Card in a player's cards array
  *
  * Takes:
  * - game: a Game instance
  * - card: a Card instance
+ * - player: a Player instance (defaults to current player)
  * Returns: number, representing the card's index
  */
 

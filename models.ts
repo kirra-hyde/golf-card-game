@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getNextPlayer, randSelectPlayer, checkAllFlipped } from "./utilities.js";
+import { getNextPlayer, randSelectPlayer, checkAllFlipped, getWinnerInd } from "./utilities.js";
 
 const BASE_URL = "https://deckofcardsapi.com/api/deck";
 const CARDS_PER_HAND = 6;
@@ -241,6 +241,16 @@ class Game {
       this.gameFinished = true;
     }
     return isitOver;
+  }
+
+  /** Get the Player who won
+   *
+   * Returns: Player, the winning Player of the Game
+   */
+
+  getWinner(): Player {
+    const winnerInd = getWinnerInd(this);
+    return this.players[winnerInd];
   }
 }
 
