@@ -121,6 +121,7 @@ describe("misc utilities", function () {
   test("getCardSpaceId", function () {
     testGame.currPlayer = testPlayer4;
     expect(getCardSpaceId(0, testGame)).toEqual("p4-0");
+    expect(getCardSpaceId(3, testGame, testPlayer2)).toEqual("p2-3");
   });
 
   test("getDrawnCardSpaceId", function () {
