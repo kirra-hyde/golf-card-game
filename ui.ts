@@ -1,7 +1,7 @@
 import { Game, Card, Player } from "./models.js";
 import {
   getCardSpaceId, getDrawnCardSpaceId, getPlayerIndex, getWinnerInd, getDrawnCard,
-  calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
+  getCardFromInd, calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
   getDrawnCardArea, getRotation,
 } from "./utilities.js";
 
@@ -74,10 +74,10 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
   // Animation 1: discard card from the hand
 
   // Element to be animated
-  const cardSpaceId = getCardSpaceId(cardInd, game);
-  const $handCard = $(`#${cardSpaceId}`).closest(".card");
+  const $handCard = getCardFromInd(game, cardInd).closest(".card");
 
   // Flip card about to be discarded, if it's face down
+  const cardSpaceId = getCardSpaceId(cardInd, game);
   if (!$handCard.is(".face-up")) {
     flipCard(game.topDiscard as Card, cardSpaceId);
     await takePause();
@@ -122,8 +122,7 @@ async function takeDrawnUI(game: Game, cardInd: number): Promise<void> {
   const card = game.currPlayer.cards[cardInd];
 
   // Element to be animated
-  const drawnCardSpaceId = getDrawnCardSpaceId(game);
-  const $drawnCard = $(`#${drawnCardSpaceId}`);
+  const $drawnCard = getDrawnCard(game);
 
   const takeDistance = calcMoveDistanceWithRotate(drawnCoords, handCoords, game);
   const { start, end } = getRotation(game, "take");
@@ -417,21 +416,19 @@ function makeUnclickable(
   $(`#${id2}`).closest(".card").removeClass("clickable");
 }
 
-/** Make a card unflippable by removing the "flippable" class.
- *  Optionally, make cards unclickable.
+/** Make a card unflippable by removing the "flippable" class
+ *  When needed, make the card and its column-mate unclickable
  *
  * Takes:
  * - game: a Game instance
- * - cardInd: a number representing the index of the Card to make unflippable
+ * - cardInd: a number representing the index of the card to make unflippable
  * - inds: an array of card indices to make unclickable (optional)
  */
 
 function makeUnflippable(game: Game, cardInd: number, inds: number[] | void) {
   if (game.currPlayer === game.players[0]) {
-    const cardSpaceId = getCardSpaceId(cardInd, game);
-    const $card = $(`#${cardSpaceId}`).closest(".card");
-    $card.removeClass("flippable");
-
+    const $card = getCardFromInd(game, cardInd);
+    $card.closest(".card").removeClass("flippable");
     if (inds) {
       makeUnclickable(game, inds);
     }

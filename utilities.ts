@@ -123,6 +123,23 @@ function getCardSpaceId(
   return `p${playerInd + 1}-${cardInd}`;
 }
 
+/** Get jQuery object of a player's card from its index
+ *
+ * Takes:
+ * - cardInd: a number representing a Card's index
+ * - game: a Game instance
+ * - player: a Player instance (defaults to current player)
+ *
+ * Returns: jQuery object of card element
+ */
+
+function getCardFromInd(
+  game: Game, cardInd: number, player: Player = game.currPlayer
+): JQuery<HTMLElement> {
+  const id = getCardSpaceId(cardInd, game, player);
+  return $(`#${id}`);
+}
+
 /** Get the id of the drawn card HTML element of the current player
  *
  * Takes: game, a Game instance
@@ -485,6 +502,6 @@ export {
   getCardSpaceId, chanceTrue, checkForMatch, getPlayerIndex, numberifyVal,
   getLowColPoints, getBadVals, getBestToSwap, getIndInPinch, checkAllFlipped,
   getWinnerInd, getCardIndex, getVerticalInd, getDrawnCardSpaceId, getDrawnCard,
-  calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
+  getCardFromInd, calcMoveDistance, getDrawnCardBackground, calcMoveDistanceWithRotate,
   sortCards, getEmptyColInds, getDrawnCardArea, getRotation,
 };

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { randSelectPlayer, getNextPlayer, checkAllFlipped, getWinnerInd,
   numberifyVal, getIndFromCardSpaceId, getCardSpaceId, getDrawnCardSpaceId,
-  getDrawnCard, getDrawnCardBackground } from './utilities';
+  getDrawnCardBackground } from './utilities';
 import { Player, Game, Card } from './models';
 
 let testPlayers: Player[];
