@@ -11,7 +11,6 @@ import {
   drawDiscardUI, discardDrawnUI, takeDrawnUI, makeUnflippable, drawDeckUI,
   updateDiscardPile, dealUI, shuffle, shufflePause,
 } from "./ui.js";
-//Comment for no purpose
 
 const $cardsArea = $("#cards-area");
 const $mainPlayerCardsArea = $("#p1");
